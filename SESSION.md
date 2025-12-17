@@ -41,11 +41,10 @@ Notes about closing VS Code / session
 - The chat/session here is ephemeral — to preserve the conversation you should commit changes to git and push to GitHub, and keep this `SESSION.md` as a snapshot.
 
 Next recommended steps (short-term)
-1. Initialize git and push this repo to GitHub (or I can do it for you).
-2. Prepare deployment configs:
+1. Prepare deployment configs:
    - `fly.toml` / Docker settings for backend; ensure `uvicorn` listens on `0.0.0.0` and reads `PORT`.
    - Configure Vercel project root to `app/frontend` and set `API_URL` env.
-3. Add a simple integration test for `get_wallet` and CI workflow (optional).
+2. Add a simple integration test for `get_wallet` and CI workflow (optional).
 
 If you want I can now:
 - Initialize git and make the initial commit locally.
