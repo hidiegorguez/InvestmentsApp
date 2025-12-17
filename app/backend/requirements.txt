@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+pandas
+azure-storage-blob
+python-dotenv
