@@ -1,0 +1,147 @@
+body {
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-editor-background);
+}
+
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 10px;
+}
+
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: var(--vscode-editor-background);
+}
+
+.message {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.user-message {
+  background-color: var(--vscode-input-background);
+  border-left: 3px solid var(--vscode-focusBorder);
+  margin-left: 20px;
+}
+
+.assistant-message {
+  background-color: var(--vscode-textBlockQuote-background);
+  border-left: 3px solid var(--vscode-textLink-foreground);
+  margin-right: 20px;
+}
+
+.system-message {
+  background-color: var(--vscode-inputValidation-infoBackground);
+  border-left: 3px solid var(--vscode-inputValidation-infoBorder);
+  margin: 8px 20px;
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+
+.thinking {
+  font-style: italic;
+  opacity: 0.8;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.4; }
+}
+
+#input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#user-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--vscode-input-border);
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border-radius: 4px;
+  resize: vertical;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  box-sizing: border-box;
+}
+
+#user-input:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+}
+
+#button-group {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+button {
+  flex: 1;
+  padding: 8px 16px;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: var(--vscode-font-size);
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+#config-btn {
+  flex: 0.3;
+  min-width: 40px;
+}
+
+#clear-btn {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+
+#clear-btn:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+/* Scrollbar personalizado */
+#messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+#messages::-webkit-scrollbar-track {
+  background: var(--vscode-editor-background);
+}
+
+#messages::-webkit-scrollbar-thumb {
+  background: var(--vscode-scrollbarSlider-background);
+  border-radius: 4px;
+}
+
+#messages::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-scrollbarSlider-hoverBackground);
+}
