@@ -293,16 +293,16 @@ class ChatPanel {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="${styleUri}" rel="stylesheet">
-      <title>AI Assistant</title>
+      <title>AI Agent</title>
     </head>
     <body>
       <div id="chat-container">
         <div id="messages"></div>
         <div id="input-container">
-          <textarea id="user-input" placeholder="Escribe tu mensaje..." rows="3"></textarea>
+          <textarea id="user-input" placeholder="Write here..." rows="3"></textarea>
           <div id="button-group">
-            <button id="send-btn">Enviar</button>
-            <button id="clear-btn">Limpiar</button>
+            <button id="send-btn">Enter</button>
+            <button id="clear-btn">Clear</button>
             <button id="config-btn">⚙️ API Key</button>
           </div>
         </div>
