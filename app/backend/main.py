@@ -1,11 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
 from typing import Optional, Dict, Any, List
-
 import models
-
 from azure_blob import AzureBlobClient
 import csv_handler
+import re
 
 load_dotenv()
 
@@ -32,7 +31,31 @@ def wallet_route(container: str = "investmentscontainer", asset_type: str = None
         raise HTTPException(status_code=500, detail=str(e))
 
 
-ASSET_TYPES = ["crypto", "etf", "stock"]
+@app.get("/user/assets")
+def get_user_assets(container: str = "investmentscontainer", user_id: str = None):
+    """
+    Checks if a user exists by looking for wallet files in Azure Blob Storage.
+    Returns a list of asset types the user has, or an error if the user doesn't exist.
+    """
+    if blob_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob client not configured")
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id is required")
+
+    assets = set()
+    blobs = blob_client.list_blobs(container)
+    pattern = re.compile(f"wallets/([^/]+)/{user_id}_wallet\.csv")
+
+    for blob in blobs:
+        match = pattern.match(blob)
+        if match:
+            assets.add(match.group(1))
+
+    if not assets:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return list(assets)
+
 
 @app.get("/settings", response_model=Dict[str, Any])
 def settings_route(container: str = "investmentscontainer", user_id: str = None):
@@ -45,7 +68,7 @@ def settings_route(container: str = "investmentscontainer", user_id: str = None)
         raise HTTPException(status_code=400, detail="user_id is required")
 
     user_found = False
-    for asset_type in ASSET_TYPES:
+    for asset_type in ["crypto", "etf", "stock"]: # Esto lo dejo fijo para no romper nada, pero podria quitarse en el futuro
         blob_name_prefix = f"wallets/{asset_type}/{user_id}_wallet.csv"
         if blob_client.list_blobs(container, prefix=blob_name_prefix):
             user_found = True
@@ -56,6 +79,6 @@ def settings_route(container: str = "investmentscontainer", user_id: str = None)
 
     # If user is found, proceed to get settings. The frontend will call this endpoint
     # to validate the user, and then proceed to asset selection.
-    # For simplicity, we'll return an empty dict for settings here, 
+    # For simplicity, we'll return an empty dict for settings here,
     # as the prompt only asked for login validation.
     return {"status": "User validated"}
