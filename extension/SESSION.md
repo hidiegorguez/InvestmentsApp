@@ -4,9 +4,9 @@ Este archivo se utiliza para documentar el progreso y los hallazgos de nuestras 
 
 ## Sesión actual:
 
-**Fecha:** 18 diciembre 2025
+**Fecha:** 2024-01-29
 
-**Objetivo:** Documentar el proyecto InvestmentsApp y explorar posibles mejoras.
+**Objetivo:** Implementar login logic for the InvestmentsApp.
 
 **Resumen de actividades:**
 
@@ -21,6 +21,10 @@ Este archivo se utiliza para documentar el progreso y los hallazgos de nuestras 
         *   Mejorar la seguridad al no enviar el ID de usuario en la URL.
         *   Agregar validación del lado del cliente.
         *   Implementar un sistema de autenticación más robusto.
+3.  **Backend Development:**
+    *   Implemented a new endpoint `/user/assets` in the backend (`app/backend/main.py`) that takes a `user_id` as a parameter.
+    *   The endpoint checks for the existence of wallet files (`wallets/{asset_type}/{user_id}_wallet.csv`) in Azure Blob Storage to determine which assets a user has.
+    *   The endpoint dynamically retrieves asset types instead of relying on a fixed list.
 
 **Próximos pasos:**
 
@@ -28,6 +32,7 @@ Este archivo se utiliza para documentar el progreso y los hallazgos de nuestras 
 *   [ ] Explorar alternativas para mejorar la seguridad en la autenticación (e.g., usar POST request).
 *   [ ] Revisar los componentes `AssetSelection` y `EditableTable` para entender su funcionalidad.
 *   [ ] Analizar la estructura del backend y cómo se conecta con Azure Blob Storage.
+*   Implement the panel in the frontend to consume the new `/user/assets` endpoint.
 *   **[ ] Al volver a abrir el chat, hacer un `git push` al repositorio remoto.**
 
 **Notas adicionales:**
