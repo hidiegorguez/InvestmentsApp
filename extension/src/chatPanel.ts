@@ -131,7 +131,7 @@ export class ChatPanel implements vscode.WebviewViewProvider {
   }
 
   private async processCommands(response: string) {
-    // Detectar READ_FILE
+    // Detectar READ_FILE - EJECUTAR AUTOMÁTICAMENTE
     const readFileRegex = /READ_FILE:\s*(.+)/g;
     let match;
     
@@ -141,15 +141,25 @@ export class ChatPanel implements vscode.WebviewViewProvider {
         const content = await FileSystemUtils.readFile(filePath);
         
         // Enviar contenido del archivo al chat
-        const fileMessage = `Contenido de ${filePath}:\n\`\`\`\n${content}\n\`\`\``;
+        const fileMessage = `[Contenido de ${filePath}]:\n\`\`\`\n${content}\n\`\`\``;
         
-        // Añadir al historial
+        // Añadir al historial como mensaje del sistema
         this.conversationHistory.push({
           role: 'user',
-          parts: [{text: `[SYSTEM] ${fileMessage}`}]
+          parts: [{text: fileMessage}]
+        });
+        
+        // Notificar en el chat
+        this.view?.webview.postMessage({
+          type: 'systemMessage',
+          message: `📄 Leído: ${filePath}`
         });
         
         // Obtener nueva respuesta con el contenido del archivo
+        this.view?.webview.postMessage({
+          type: 'assistantThinking'
+        });
+        
         const newResponse = await this.gemini.chat(this.conversationHistory);
         this.conversationHistory.push({
           role: 'model',
@@ -166,19 +176,25 @@ export class ChatPanel implements vscode.WebviewViewProvider {
         await this.processCommands(newResponse);
         return; // Salir para evitar duplicados
       } catch (error: any) {
-        vscode.window.showErrorMessage(`Error leyendo archivo: ${error.message}`);
+        this.view?.webview.postMessage({
+          type: 'error',
+          message: `Error leyendo ${filePath}: ${error.message}`
+        });
       }
     }
 
-    // Detectar WRITE_FILE (automático para crear/editar)
-    const writeFileRegex = /WRITE_FILE:\s*(.+)/;
+    // Detectar WRITE_FILE - EJECUTAR AUTOMÁTICAMENTE
+    // Asegurarnos de que NO esté dentro de un bloque de código
+    const writeFileRegex = /(?:^|\n)WRITE_FILE:\s*(.+?)(?:\n|$)/m;
     const writeMatch = response.match(writeFileRegex);
-    if (writeMatch) {
+    if (writeMatch && !response.includes('```\nWRITE_FILE:')) {
       const filePath = writeMatch[1].trim();
       
-      // Extraer el código del siguiente bloque
+      // Extraer el código del siguiente bloque (debe estar DESPUÉS del comando)
+      const commandIndex = response.indexOf(writeMatch[0]);
+      const afterCommand = response.substring(commandIndex + writeMatch[0].length);
       const codeBlockRegex = /```(?:\w+)?\n([\s\S]*?)```/;
-      const codeMatch = response.match(codeBlockRegex);
+      const codeMatch = afterCommand.match(codeBlockRegex);
       
       if (codeMatch) {
         const code = codeMatch[1];
@@ -188,54 +204,47 @@ export class ChatPanel implements vscode.WebviewViewProvider {
           // Notificar al chat que se completó
           this.view?.webview.postMessage({
             type: 'systemMessage',
-            message: `✅ Archivo ${filePath} creado/actualizado`
+            message: `✅ Archivo guardado: ${filePath}`
           });
         } catch (error: any) {
-          vscode.window.showErrorMessage(`Error creando archivo: ${error.message}`);
-        }
-      }
-    }
-
-    // Detectar EDIT_FILE (automático)
-    const editFileRegex = /EDIT_FILE:\s*(.+)/;
-    const editMatch = response.match(editFileRegex);
-    if (editMatch) {
-      const filePath = editMatch[1].trim();
-      
-      const codeBlockRegex = /```(?:\w+)?\n([\s\S]*?)```/;
-      const codeMatch = response.match(codeBlockRegex);
-      
-      if (codeMatch) {
-        const code = codeMatch[1];
-        try {
-          await FileSystemUtils.editFile(filePath, code);
-          
           this.view?.webview.postMessage({
-            type: 'systemMessage',
-            message: `✅ Archivo ${filePath} editado`
+            type: 'error',
+            message: `Error guardando ${filePath}: ${error.message}`
           });
-        } catch (error: any) {
-          vscode.window.showErrorMessage(`Error editando archivo: ${error.message}`);
         }
+      } else {
+        this.view?.webview.postMessage({
+          type: 'error',
+          message: `No se encontró bloque de código después de WRITE_FILE: ${filePath}`
+        });
       }
     }
 
-    // Detectar LIST_FILES
+    // Detectar LIST_FILES - EJECUTAR AUTOMÁTICAMENTE
     const listFilesRegex = /LIST_FILES:\s*(.+)/;
     const listMatch = response.match(listFilesRegex);
     if (listMatch) {
       const dirPath = listMatch[1].trim();
       try {
         const files = await FileSystemUtils.listFiles(dirPath);
-        const fileList = `Archivos en ${dirPath}:\n${files.join('\n')}`;
+        const fileList = `[Archivos en ${dirPath}]:\n${files.join('\n')}`;
         
         // Añadir al historial
         this.conversationHistory.push({
           role: 'user',
-          parts: [{text: `[SYSTEM] ${fileList}`}]
+          parts: [{text: fileList}]
+        });
+        
+        this.view?.webview.postMessage({
+          type: 'systemMessage',
+          message: `📁 Listados ${files.length} archivos en ${dirPath}`
         });
         
         // Obtener nueva respuesta
+        this.view?.webview.postMessage({
+          type: 'assistantThinking'
+        });
+        
         const newResponse = await this.gemini.chat(this.conversationHistory);
         this.conversationHistory.push({
           role: 'model',
@@ -250,11 +259,14 @@ export class ChatPanel implements vscode.WebviewViewProvider {
         await this.processCommands(newResponse);
         return;
       } catch (error: any) {
-        vscode.window.showErrorMessage(`Error listando archivos: ${error.message}`);
+        this.view?.webview.postMessage({
+          type: 'error',
+          message: `Error listando ${dirPath}: ${error.message}`
+        });
       }
     }
 
-    // Detectar comandos de terminal (PEDIR CONFIRMACIÓN para seguridad)
+    // Detectar comandos de terminal - PEDIR CONFIRMACIÓN
     if (response.includes('EXECUTE_TERMINAL:')) {
       const commandMatch = response.match(/EXECUTE_TERMINAL:\s*(.+)/);
       if (commandMatch) {
@@ -267,35 +279,11 @@ export class ChatPanel implements vscode.WebviewViewProvider {
 
         if (execute === 'Sí') {
           await TerminalUtils.executeCommand(command);
+          this.view?.webview.postMessage({
+            type: 'systemMessage',
+            message: `⚡ Ejecutado: ${command}`
+          });
         }
-      }
-    }
-
-    // Detectar bloques de código para aplicar al archivo actual
-    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-    const codeBlocks: Array<{language?: string, code: string}> = [];
-    
-    while ((match = codeBlockRegex.exec(response)) !== null) {
-      // Solo si no es parte de un comando específico
-      if (!response.includes('WRITE_FILE:') && !response.includes('EDIT_FILE:')) {
-        codeBlocks.push({
-          language: match[1],
-          code: match[2]
-        });
-      }
-    }
-
-    // Si hay bloques de código y un editor activo, aplicarlos automáticamente
-    if (codeBlocks.length > 0) {
-      const editor = vscode.window.activeTextEditor;
-      if (editor && codeBlocks.length === 1) {
-        // Si solo hay un bloque y hay editor activo, aplicar directamente
-        await FileSystemUtils.applyCode(editor, codeBlocks[0].code);
-        
-        this.view?.webview.postMessage({
-          type: 'systemMessage',
-          message: '✅ Código aplicado al archivo actual'
-        });
       }
     }
   }
@@ -311,16 +299,16 @@ export class ChatPanel implements vscode.WebviewViewProvider {
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="${styleUri}" rel="stylesheet">
-      <title>AI Agent</title>
+      <title>AI Assistant</title>
     </head>
     <body>
       <div id="chat-container">
         <div id="messages"></div>
         <div id="input-container">
-          <textarea id="user-input" placeholder="Write here..." rows="3"></textarea>
+          <textarea id="user-input" placeholder="Escribe tu mensaje..." rows="3"></textarea>
           <div id="button-group">
-            <button id="send-btn">Enter</button>
-            <button id="clear-btn">Clear</button>
+            <button id="send-btn">Enviar</button>
+            <button id="clear-btn">Limpiar</button>
             <button id="config-btn">⚙️ API Key</button>
           </div>
         </div>
@@ -392,6 +380,14 @@ export class ChatPanel implements vscode.WebviewViewProvider {
             case 'assistantMessage':
               removeThinking();
               addMessage(message.message, false);
+              break;
+            case 'systemMessage':
+              removeThinking();
+              const sysMsg = document.createElement('div');
+              sysMsg.className = 'message system-message';
+              sysMsg.textContent = message.message;
+              messagesDiv.appendChild(sysMsg);
+              messagesDiv.scrollTop = messagesDiv.scrollHeight;
               break;
             case 'error':
               removeThinking();
