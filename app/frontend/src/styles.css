@@ -1,3 +1,8 @@
-body { margin: 0; font-family: Inter, system-ui, Arial; }
-input, select { padding: 6px 8px; }
-button { padding: 6px 10px }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	html, body { height: 100%; }
+	body { margin: 0; font-family: Inter, system-ui, Arial, sans-serif; }
+}
