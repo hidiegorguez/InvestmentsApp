@@ -9,11 +9,6 @@ DEFAULT_COLOR = "#808080"
 
 
 def get_wallet(blob_client, container: str, asset_type: str, user_id: str) -> Dict[str, Any]:
-    """Download and return a wallet CSV normalized to per-day asset lists.
-
-    Expected blob path: `wallets/{asset_type}/{user_id}_wallet.csv`.
-    Returns a list of records: {"date": ..., "assets": [ {symbol,total_holding,invested_EUR,color}, ... ] }
-    """
     blob_name = f"wallets/{asset_type}/{user_id}_wallet.csv"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
     tmp.close()
@@ -81,12 +76,7 @@ def get_wallet(blob_client, container: str, asset_type: str, user_id: str) -> Di
         except Exception:
             pass
 
-
-def get_user_settings(blob_client, container: str, asset_type: str, user_id: str):
-    """Return the settings row(s) for a user from `data/user_settings_{asset_type}.csv`.
-
-    The CSV is expected to contain an `id` column to filter by.
-    """
+def get_user_settings(blob_client, container: str, user_id: str, asset_type: str):
     blob_name = f"data/user_settings_{asset_type}.csv"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
     tmp.close()
@@ -96,7 +86,6 @@ def get_user_settings(blob_client, container: str, asset_type: str, user_id: str
         if "id" not in df.columns:
             raise ValueError(f"CSV {blob_name} does not contain 'id' column")
         matched = df[df["id"] == str(user_id)].copy()
-
         if "show_holdings" in matched.columns:
             def _to_bool(v):
                 if pd.isna(v):
@@ -112,7 +101,6 @@ def get_user_settings(blob_client, container: str, asset_type: str, user_id: str
                     return None
 
             matched["show_holdings"] = matched["show_holdings"].apply(_to_bool)
-
         records = matched.to_dict(orient="records")
         return records
     finally:
