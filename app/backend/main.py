@@ -16,7 +16,7 @@ except Exception:
     blob_client = None
 
 @app.get("/user/assets")
-def get_user_assets(user_id: str = None):
+def get_assets(user_id: str = None):
     """
     Returns a list of asset types the user has, or an error if the user doesn't exist.
     """
@@ -55,7 +55,7 @@ def get_wallet(user_id: str = None, asset_type: str = None):
     
 
 @app.get("/settings", response_model=Dict[str, Any])
-def settings_route(user_id: str = None, asset_type: str = None):
+def get_settings(user_id: str = None, asset_type: str = None):
     """
     Returns a dict of settings for a given `user_id` and `asset_type`.
     """
@@ -66,7 +66,6 @@ def settings_route(user_id: str = None, asset_type: str = None):
         if not asset_type or not user_id:
             raise HTTPException(status_code=400, detail="asset_type and user_id are required")
         records = csv_handler.get_user_settings(blob_client, "investmentscontainer", user_id, asset_type)
-        print(f"\n records: {records}\n")
         return records[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
