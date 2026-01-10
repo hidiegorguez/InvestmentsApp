@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from dotenv import load_dotenv
 from typing import Optional, Dict, Any, List
+from fastapi.middleware.cors import CORSMiddleware
 import models
 from azure_blob import AzureBlobClient
 import csv_handler
@@ -9,6 +10,18 @@ import re
 load_dotenv()
 
 app = FastAPI(title="Investments Backend")
+
+origins = [
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 try:
     blob_client = AzureBlobClient.from_env()
