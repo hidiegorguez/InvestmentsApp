@@ -6,12 +6,10 @@ import Wallet from './pages/Wallet';
 export default function App() {
   return (
     <Router>
-      <div style={{ padding: 24, fontFamily: 'Inter, system-ui, Arial' }}>
+      <div style={{ padding: 24, fontFamily: 'Inter, system-ui, Arial' , backgroundColor: '#ffcc88', minHeight: '100vh' }}>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/wallet" element={<Wallet />} />
-          {/* <Route path="/asset-selection" element={<AssetSelection />} />
-          <Route path="/editable-table/:assetType" element={<EditableTable />} /> */}
+          <Route path="/wallet/:userId/:asset" element={<Wallet />} />
         </Routes>
       </div>
     </Router>
