@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logIn } from '../api/api';
 
 const Login: React.FC = () => {
   const [userId, setUserId] = useState('');
@@ -18,7 +19,7 @@ const Login: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/user/assets?user_id=${encodeURIComponent(userId)}`);
+      const response = await logIn(userId);
       if (response.ok) {
         navigate('/asset-selection');
       } else if (response.status === 404) {
