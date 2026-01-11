@@ -90,12 +90,28 @@ const Wallet: React.FC = () => {
     // Esperar 1 segundo antes de actualizar la página
     setTimeout(() => {
       window.location.reload();
-    }, 1000);
+    }, 1500);
   };
 
   const handleCancel = () => {
     console.log('Edit cancelled');
     setShowEditPanel(false);
+  };
+
+  const handleAddNewRecord = () => {
+    const emptyRecord: WalletRecord = {
+      userId: userId!,
+      asset: asset!,
+      index: walletData.length, // Asumimos que el índice es el siguiente en la lista
+      date: new Date().toISOString().split('T')[0], // Fecha actual en formato ISO
+      stock: assetSymbols.map((symbol: string) => ({
+        symbol,
+        holding: 0,
+        invested: 0,
+      })),
+    };
+    setRecord(emptyRecord);
+    setShowEditPanel(true);
   };
 
   if (error) {
@@ -110,11 +126,6 @@ const Wallet: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-md shadow-md">
-          {successMessage}
-        </div>
-      )}
       {showAssetPanel && userId && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-1">
           <div className="bg-gray-200 p-4 rounded-md shadow-md">
@@ -138,7 +149,7 @@ const Wallet: React.FC = () => {
                   <div className="flex justify-end">
                     <button
                       onClick={handleCancel}
-                      className="px-4 py-2 bg-gray-300 rounded-md mr-2"
+                      className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md mr-2"
                       disabled={loading}
                     >
                       Cancel
@@ -148,7 +159,7 @@ const Wallet: React.FC = () => {
                       className={`px-4 py-2 rounded-md text-white ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600'}`}
                       disabled={loading}
                     >
-                      {loading ? 'Guardando operación...' : 'Save'}
+                      {loading ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                   {successMessage && (
@@ -163,12 +174,20 @@ const Wallet: React.FC = () => {
         </div>
       )}
       <div className="w-full bg-white p-6 rounded-md shadow-xl relative">
-        <button
-          onClick={fetchAssets}
-          className="absolute top-4 right-4 bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
-        >
-          Change Asset
-        </button>
+        <div className="absolute top-4 right-4 flex space-x-2">
+          <button
+            onClick={fetchAssets}
+            className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700"
+          >
+            Change Asset
+          </button>
+          <button
+            onClick={handleAddNewRecord}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Add New Record
+          </button>
+        </div>
         <h2 className="text-2xl font-semibold mb-4">{asset?.toUpperCase()} WALLET</h2>
         <table className="table-auto w-full border-collapse border border-gray-300">
           <thead>
