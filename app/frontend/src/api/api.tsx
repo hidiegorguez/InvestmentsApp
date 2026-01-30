@@ -1,34 +1,17 @@
-export async function logIn (userId: string) {
-  const response = await fetch(`http://127.0.0.1:8000/user/assets?user_id=${encodeURIComponent(userId)}`);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  return response.json();
+const API_BASE = 'http://127.0.0.1:8000';
+
+function getAuthHeaders(): HeadersInit {
+  const token = localStorage.getItem('auth_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
-export async function getWallet(userId: string, asset: string) {
-  const response = await fetch(`http://127.0.0.1:8000/wallet?asset_type=${encodeURIComponent(asset)}&user_id=${encodeURIComponent(userId)}`);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-}
-
-export async function getAssets(userId: string) {
-  const response = await fetch(`http://127.0.0.1:8000/user/assets?user_id=${encodeURIComponent(userId)}`);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-}
-
-export async function saveWalletRecord(assetType: string, record: any) {
-  const response = await fetch(`http://127.0.0.1:8000/wallet/record?asset_type=${encodeURIComponent(assetType)}`, {
+export async function logIn(userId: string, password: string) {
+  const response = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(record),
+    body: JSON.stringify({ userId, password }),
   });
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -36,12 +19,67 @@ export async function saveWalletRecord(assetType: string, record: any) {
   return response.json();
 }
 
+export async function getWallet(userId: string, asset: string) {
+  const response = await fetch(`${API_BASE}/wallet?asset_type=${encodeURIComponent(asset)}`, {
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) {
+    if (response.status === 401) {
+      // Token expirado o inválido
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_userId');
+      localStorage.removeItem('auth_assets');
+      window.location.href = '/';
+    }
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function getAssets(userId: string) {
+  const response = await fetch(`${API_BASE}/user/assets?user_id=${encodeURIComponent(userId)}`);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function saveWalletRecord(assetType: string, record: any) {
+  const response = await fetch(`${API_BASE}/wallet/record?asset_type=${encodeURIComponent(assetType)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(record),
+  });
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_userId');
+      localStorage.removeItem('auth_assets');
+      window.location.href = '/';
+    }
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
+
 export async function deleteWalletRecord(assetType: string, userId: string, index: number) {
   const response = await fetch(
-    `http://127.0.0.1:8000/wallet/record?asset_type=${encodeURIComponent(assetType)}&user_id=${encodeURIComponent(userId)}&index=${index}`,
-    { method: 'DELETE' }
+    `${API_BASE}/wallet/record?asset_type=${encodeURIComponent(assetType)}&index=${index}`,
+    { 
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    }
   );
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_userId');
+      localStorage.removeItem('auth_assets');
+      window.location.href = '/';
+    }
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   return response.json();

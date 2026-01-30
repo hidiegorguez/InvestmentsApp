@@ -2,12 +2,38 @@ import pandas as pd
 import tempfile
 import os
 import json
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import models
 
 # default color when symbol not found in data/symbol_colors.json
 DEFAULT_COLOR = "#808080"
+
+
+def get_user(blob_client, container: str, user_id: str) -> Optional[Dict[str, str]]:
+    """
+    Obtiene un usuario de data/users.csv por su ID.
+    Retorna un dict con 'id' y 'password_hash', o None si no existe.
+    """
+    blob_name = "data/users.csv"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
+    tmp.close()
+    try:
+        blob_client.download_blob_to_path(container, blob_name, tmp.name)
+        df = pd.read_csv(tmp.name, dtype=str)
+        if "id" not in df.columns:
+            return None
+        matched = df[df["id"] == str(user_id)]
+        if matched.empty:
+            return None
+        return matched.iloc[0].to_dict()
+    except Exception:
+        return None
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except Exception:
+            pass
 
 
 def get_wallet(blob_client, container: str, asset_type: str, user_id: str) -> Dict[str, Any]:

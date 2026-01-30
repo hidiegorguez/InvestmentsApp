@@ -1,38 +1,50 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logIn } from '../api/api';
+import { useAuth } from '../context/AuthContext';
 import AssetSelectionPanel from './AssetSelectionPanel';
 
 const Login: React.FC = () => {
   const [userId, setUserId] = useState('');
+  const [password, setPassword] = useState('');
   const [succesfullLogin, setSuccesfullLogin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [assets, setAssets] = useState<string[]>([]);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     setError(null);
     setIsLoading(true);
 
-    if (!userId) {
-      setError('Por favor, introduce un ID de usuario.');
+    if (!userId || !password) {
+      setError('Por favor, introduce usuario y contraseña.');
       setIsLoading(false);
       return;
     }
 
     try {
-      const assetsList = await logIn(userId);
-      setAssets(assetsList);
+      const response = await logIn(userId, password);
+      login(response.access_token, userId, response.assets);
+      setAssets(response.assets);
       setSuccesfullLogin(true);
     } catch (e: any) {
-      if (e.message.includes('404')) {
+      if (e.message.includes('401')) {
+        setError('Usuario o contraseña incorrectos.');
+      } else if (e.message.includes('404')) {
         setError('Usuario no existente.');
       } else {
         setError('Error de conexión. Inténtalo de nuevo.');
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleLogin();
     }
   };
 
@@ -45,9 +57,20 @@ const Login: React.FC = () => {
 
           <input
             type="text"
-            placeholder="Select your user ID"
+            placeholder="Usuario"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
+            onKeyPress={handleKeyPress}
+            disabled={isLoading}
+            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-orange-600 disabled:opacity-50"
+          />
+
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyPress={handleKeyPress}
             disabled={isLoading}
             className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-orange-600 disabled:opacity-50"
           />
