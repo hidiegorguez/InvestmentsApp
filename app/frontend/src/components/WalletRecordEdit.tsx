@@ -9,7 +9,18 @@ interface WalletRecordEditProps extends WalletRecord {
 
 const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, index, date, stock, onSave, onCancel }) => {
   const [editDate, setEditDate] = useState(date);
-  const [editStock, setEditStock] = useState(stock);
+  const [editStock, setEditStock] = useState<Record<string, { total_holding: string; invested: string }>>(
+    () => {
+      const initial: Record<string, { total_holding: string; invested: string }> = {};
+      stock.forEach((item) => {
+        initial[item.symbol] = {
+          total_holding: String(item.total_holding),
+          invested: String(item.invested),
+        };
+      });
+      return initial;
+    }
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -17,28 +28,40 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
   // Sincronizar el estado inicial con los valores actuales de stock
   useEffect(() => {
     setEditDate(date);
-    setEditStock(stock);
+    const initial: Record<string, { total_holding: string; invested: string }> = {};
+    stock.forEach((item) => {
+      initial[item.symbol] = {
+        total_holding: String(item.total_holding),
+        invested: String(item.invested),
+      };
+    });
+    setEditStock(initial);
   }, [date, stock]);
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditDate(e.target.value);
   };
 
-  const handleStockChange = (symbol: string, field: 'total_holding' | 'invested', value: number) => {
-    setEditStock((prevStock) =>
-      prevStock.map((item) =>
-        item.symbol === symbol ? { ...item, [field]: value } : item
-      )
-    );
+  const handleStockChange = (symbol: string, field: 'total_holding' | 'invested', value: string) => {
+    setEditStock((prev) => ({
+      ...prev,
+      [symbol]: { ...prev[symbol], [field]: value },
+    }));
   };
 
   const handleSubmit = async () => {
+    const updatedStock = stock.map((item) => ({
+      symbol: item.symbol,
+      total_holding: parseFloat(editStock[item.symbol]?.total_holding) || 0,
+      invested: parseFloat(editStock[item.symbol]?.invested) || 0,
+    }));
+
     const updatedRecord: WalletRecord = {
       userId,
       asset,
       index,
       date: editDate,
-      stock: editStock,
+      stock: updatedStock,
     };
 
     setLoading(true);
@@ -77,25 +100,23 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
         <div>
           <h3 className="text-lg font-semibold mb-2">Assets</h3>
           <ul>
-            {editStock.map((asset) => (
-              <li key={asset.symbol} className="mb-4">
-                <span className="font-bold block mb-1">{asset.symbol}</span>
+            {stock.map((item) => (
+              <li key={item.symbol} className="mb-4">
+                <span className="font-bold block mb-1">{item.symbol}</span>
                 <label className="block text-sm font-medium mb-1">Holding:</label>
                 <input
-                  type="number"
-                  value={asset.total_holding}
-                  onChange={(e) =>
-                    handleStockChange(asset.symbol, 'total_holding', parseFloat(e.target.value))
-                  }
+                  type="text"
+                  inputMode="decimal"
+                  value={editStock[item.symbol]?.total_holding ?? ''}
+                  onChange={(e) => handleStockChange(item.symbol, 'total_holding', e.target.value)}
                   className="w-full p-2 border rounded-md mb-2"
                 />
                 <label className="block text-sm font-medium mb-1">Invested (EUR):</label>
                 <input
-                  type="number"
-                  value={asset.invested}
-                  onChange={(e) =>
-                    handleStockChange(asset.symbol, 'invested', parseFloat(e.target.value))
-                  }
+                  type="text"
+                  inputMode="decimal"
+                  value={editStock[item.symbol]?.invested ?? ''}
+                  onChange={(e) => handleStockChange(item.symbol, 'invested', e.target.value)}
                   className="w-full p-2 border rounded-md"
                 />
               </li>
