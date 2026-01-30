@@ -26,7 +26,11 @@ const Login: React.FC = () => {
       setAssets(assetsList);
       setSuccesfullLogin(true);
     } catch (e: any) {
-      setError(`Error de red: ${e.message}`);
+      if (e.message.includes('404')) {
+        setError('Usuario no existente.');
+      } else {
+        setError('Error de conexión. Inténtalo de nuevo.');
+      }
     } finally {
       setIsLoading(false);
     }
