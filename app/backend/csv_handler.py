@@ -18,6 +18,10 @@ def get_wallet(blob_client, container: str, asset_type: str, user_id: str) -> Di
         blob_client.download_blob_to_path(container, blob_name, tmp.name)
         df = pd.read_csv(tmp.name)
 
+        # Ordenar por fecha de más antigua a más reciente
+        if "date" in df.columns:
+            df = df.sort_values(by="date", ascending=True).reset_index(drop=True)
+
         invested_suffix = "_invested_EUR"
         invested_cols = [c for c in df.columns if c.endswith(invested_suffix)]
         if not invested_cols:
