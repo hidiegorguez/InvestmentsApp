@@ -14,8 +14,6 @@ const Wallet: React.FC = () => {
   const [showAssetPanel, setShowAssetPanel] = useState(false);
   const [showEditPanel, setShowEditPanel] = useState(false);
   const [assets, setAssets] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -74,27 +72,11 @@ const Wallet: React.FC = () => {
     setShowEditPanel(true);
   };
 
-  const handleSave = async (updatedRecord: WalletRecord) => {
-    setLoading(true);
-    setSuccessMessage(null);
-
-    // Simular espera de 2 segundos
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    console.log('Saving record to backend:', updatedRecord);
-    // Aquí se puede agregar la lógica para enviar los datos al backend
-
-    setLoading(false);
-    setSuccessMessage('Operación realizada con éxito.');
-
-    // Esperar 1 segundo antes de actualizar la página
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
+  const handleSave = (updatedRecord: WalletRecord) => {
+    setShowEditPanel(false);
   };
 
   const handleCancel = () => {
-    console.log('Edit cancelled');
     setShowEditPanel(false);
   };
 
@@ -143,32 +125,11 @@ const Wallet: React.FC = () => {
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-1">
           <div className="bg-gray-200 p-4 rounded-md shadow-md">
             {record && (
-              <>
-                <WalletRecordEdit {...record} onSave={handleSave} onCancel={handleCancel} />
-                <div className="flex flex-col justify-end mt-4">
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleCancel}
-                      className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md mr-2"
-                      disabled={loading}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => handleSave(record)}
-                      className={`px-4 py-2 rounded-md text-white ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600'}`}
-                      disabled={loading}
-                    >
-                      {loading ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  </div>
-                  {successMessage && (
-                    <div className="mt-4 text-center text-green-500">
-                      {successMessage}
-                    </div>
-                  )}
-                </div>
-              </>
+              <WalletRecordEdit 
+                {...record} 
+                onSave={handleSave} 
+                onCancel={handleCancel} 
+              />
             )}
           </div>
         </div>

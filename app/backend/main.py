@@ -82,3 +82,19 @@ def get_settings(user_id: str = None, asset_type: str = None):
         return records[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/wallet/record")
+def edit_wallet_record(asset_type: str = None, record: models.WalletRecord = None):
+    """
+    Edit a wallet record for a given record, containing its asset and user.
+    """
+    if blob_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob client not configured")
+    
+    try:
+        if not asset_type or not record:
+            raise HTTPException(status_code=400, detail="asset_type and record are required")
+        result = csv_handler.edit_wallet_record(blob_client, "investmentscontainer", asset_type, record)
+        return {"message": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

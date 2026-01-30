@@ -4,6 +4,8 @@ import os
 import json
 from typing import Dict, Any
 
+import models
+
 # default color when symbol not found in data/symbol_colors.json
 DEFAULT_COLOR = "#808080"
 
@@ -103,6 +105,78 @@ def get_user_settings(blob_client, container: str, user_id: str, asset_type: str
             matched["show_holdings"] = matched["show_holdings"].apply(_to_bool)
         records = matched.to_dict(orient="records")
         return records
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except Exception:
+            pass
+
+def edit_wallet_record(blob_client, container: str, asset_type: str, record: models.WalletRecord) -> str:
+    blob_name = f"wallets/{asset_type}/{record.userId}_wallet.csv"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
+    tmp.close()
+    try:
+        blob_client.download_blob_to_path(container, blob_name, tmp.name)
+        df = pd.read_csv(tmp.name)
+
+        date_val = record.date
+        
+        if date_val is None:
+            raise ValueError("Record must contain 'date' field")
+        
+        if date_val in df["date"].values and False:  # Second condition if add new record only
+            raise ValueError(f"Record with date '{date_val}' already exists. Use index to update existing record.")
+
+        # Prepare a dict for the new row
+        new_row = {"date": date_val}
+        for stock in record.stock:
+            symbol = stock.symbol
+            holding = stock.total_holding
+            invested = stock.invested  # Adjusted to match frontend
+            if symbol is None:
+                continue
+            new_row[symbol] = holding
+            new_row[f"{symbol}_invested_EUR"] = invested
+
+        # Check by index if it's a new row or an update
+        if record.index is not None and 0 <= record.index < len(df):
+            # Update existing row
+            for key, value in new_row.items():
+                df.at[record.index, key] = value
+        else:
+            # Append new row
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+
+        # Save back to CSV
+        df.to_csv(tmp.name, index=False)
+        blob_client.upload_blob_from_path(container, blob_name, tmp.name, overwrite=True)
+
+        return f"Record for date '{date_val}' added/updated successfully."
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except Exception:
+            pass
+
+def delete_wallet_record(blob_client, container: str, asset_type: str, user_id: str, date: str) -> str:
+    blob_name = f"wallets/{asset_type}/wallet.csv"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
+    tmp.close()
+    try:
+        blob_client.download_blob_to_path(container, blob_name, tmp.name)
+        df = pd.read_csv(tmp.name)
+
+        if date not in df["date"].values:
+            raise ValueError(f"No record found with date '{date}' to delete.")
+
+        # Delete the row with the matching date
+        df = df[df["date"] != date]
+
+        # Save back to CSV
+        df.to_csv(tmp.name, index=False)
+        blob_client.upload_blob_from_path(container, blob_name, tmp.name, overwrite=True)
+
+        return f"Record with date '{date}' deleted successfully."
     finally:
         try:
             os.unlink(tmp.name)

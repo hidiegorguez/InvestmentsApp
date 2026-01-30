@@ -27,3 +27,15 @@ class WalletDay(BaseModel):
 
     class Config:
         orm_mode = True
+        
+class StockItem(BaseModel):
+    symbol: str
+    total_holding: float
+    invested: float
+
+class WalletRecord(BaseModel):
+    userId: str
+    asset: str
+    index: int
+    date: str
+    stock: List[StockItem]

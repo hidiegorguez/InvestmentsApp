@@ -31,7 +31,7 @@ class AzureBlobClient:
         with open(dest_path, "wb") as f:
             f.write(data)
 
-    def upload_file(self, container: str, blob_name: str, src_path: str, overwrite: bool = True):
+    def upload_blob_from_path(self, container: str, blob_name: str, src_path: str, overwrite: bool = True):
         container_client = self._client.get_container_client(container)
         blob_client = container_client.get_blob_client(blob_name)
         with open(src_path, "rb") as data:

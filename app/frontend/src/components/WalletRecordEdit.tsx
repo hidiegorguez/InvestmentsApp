@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WalletRecord } from '../types/types';
+import { editWalletRecord } from '../api/api';
 
 interface WalletRecordEditProps extends WalletRecord {
   onSave: (record: WalletRecord) => void;
@@ -9,6 +10,9 @@ interface WalletRecordEditProps extends WalletRecord {
 const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, index, date, stock, onSave, onCancel }) => {
   const [editDate, setEditDate] = useState(date);
   const [editStock, setEditStock] = useState(stock);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Sincronizar el estado inicial con los valores actuales de stock
   useEffect(() => {
@@ -26,6 +30,35 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
         item.symbol === symbol ? { ...item, [field]: value } : item
       )
     );
+  };
+
+  const handleSubmit = async () => {
+    const updatedRecord: WalletRecord = {
+      userId,
+      asset,
+      index,
+      date: editDate,
+      stock: editStock,
+    };
+
+    setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      await editWalletRecord(updatedRecord.asset, updatedRecord);
+      setSuccessMessage('Operación realizada con éxito.');
+      
+      // Esperar antes de cerrar y recargar
+      setTimeout(() => {
+        onSave(updatedRecord);
+        window.location.reload();
+      }, 1500);
+    } catch (e: any) {
+      setError(`Error al guardar: ${e.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -68,6 +101,34 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
               </li>
             ))}
           </ul>
+        </div>
+        <div className="flex flex-col justify-end mt-4">
+          <div className="flex justify-end">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md mr-2"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSubmit}
+              className={`px-4 py-2 rounded-md text-white ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600'}`}
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+          {successMessage && (
+            <div className="mt-4 text-center text-green-500">
+              {successMessage}
+            </div>
+          )}
+          {error && (
+            <div className="mt-4 text-center text-red-500">
+              {error}
+            </div>
+          )}
         </div>
       </div>
     </div>
