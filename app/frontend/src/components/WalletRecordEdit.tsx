@@ -124,31 +124,34 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
           </ul>
         </div>
         <div className="flex flex-col justify-end mt-4">
-          <div className="flex justify-end">
-            <button
-              onClick={onCancel}
-              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md mr-2"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              className={`px-4 py-2 rounded-md text-white ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600'}`}
-              disabled={loading}
-            >
-              {loading ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-          {successMessage && (
-            <div className="mt-4 text-center text-green-500">
+          {successMessage ? (
+            <div className="text-center text-green-500">
               {successMessage}
             </div>
-          )}
-          {error && (
-            <div className="mt-4 text-center text-red-500">
-              {error}
-            </div>
+          ) : (
+            <>
+              <div className="flex justify-end">
+                <button
+                  onClick={onCancel}
+                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md mr-2"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  className={`px-4 py-2 rounded-md text-white ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600'}`}
+                  disabled={loading}
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+              {error && (
+                <div className="mt-4 text-center text-red-500">
+                  {error}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
