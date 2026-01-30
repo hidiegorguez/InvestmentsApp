@@ -152,7 +152,7 @@ const Wallet: React.FC = () => {
           {/* Table skeleton */}
           <div className="space-y-3 overflow-x-auto">
             {/* Header row */}
-            <div className="flex space-x-4 min-w-[600px]">
+            <div className="flex space-x-4 min-w-150">
               <div className="h-10 w-24 bg-gray-300 rounded animate-pulse"></div>
               <div className="h-10 flex-1 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-10 flex-1 bg-gray-200 rounded animate-pulse"></div>
@@ -160,7 +160,7 @@ const Wallet: React.FC = () => {
             </div>
             {/* Data rows */}
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex space-x-4 min-w-[600px]">
+              <div key={i} className="flex space-x-4 min-w-150">
                 <div className="h-12 w-24 bg-gray-100 rounded animate-pulse"></div>
                 <div className="h-12 flex-1 bg-gray-100 rounded animate-pulse"></div>
                 <div className="h-12 flex-1 bg-gray-100 rounded animate-pulse"></div>
@@ -254,7 +254,7 @@ const Wallet: React.FC = () => {
         
         {/* Tabla responsive con scroll horizontal en móviles */}
         <div className="overflow-x-auto -mx-3 sm:mx-0\">
-          <div className="min-w-[600px] px-3 sm:px-0\">
+          <div className="min-w-150 px-3 sm:px-0\">
             <table className="table-auto w-full border-collapse border border-gray-300 text-xs sm:text-sm\">
               <thead>
                 <tr>
