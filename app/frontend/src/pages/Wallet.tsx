@@ -138,7 +138,39 @@ const Wallet: React.FC = () => {
   }
 
   if (!walletData) {
-    return <div className='h-screen flex items-center justify-center'>Cargando datos de la billetera...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center p-6">
+        <div className="w-full bg-white p-6 rounded-md shadow-xl">
+          {/* Header skeleton */}
+          <div className="flex justify-between items-center mb-6">
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+            <div className="flex space-x-2">
+              <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-36 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+          {/* Table skeleton */}
+          <div className="space-y-3">
+            {/* Header row */}
+            <div className="flex space-x-4">
+              <div className="h-10 w-24 bg-gray-300 rounded animate-pulse"></div>
+              <div className="h-10 flex-1 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 flex-1 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-20 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            {/* Data rows */}
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex space-x-4">
+                <div className="h-12 w-24 bg-gray-100 rounded animate-pulse"></div>
+                <div className="h-12 flex-1 bg-gray-100 rounded animate-pulse"></div>
+                <div className="h-12 flex-1 bg-gray-100 rounded animate-pulse"></div>
+                <div className="h-12 w-20 bg-gray-100 rounded animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const assetSymbols = walletData[0]?.assets.map((asset: any) => asset.symbol) || [];
@@ -148,7 +180,7 @@ const Wallet: React.FC = () => {
       {showAssetPanel && userId && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-1">
           <div className="bg-gray-200 p-4 rounded-md shadow-md">
-            <AssetSelectionPanel userId={userId} assets={assets} />
+            <AssetSelectionPanel userId={userId} assets={assets} onClose={() => setShowAssetPanel(false)} />
             <button
               onClick={() => setShowAssetPanel(false)}
               className="mt-2 bg-red-700 text-white px-4 py-2 rounded hover:bg-red-800"
