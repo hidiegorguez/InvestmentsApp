@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { getWallet, getAssets } from '../api/api';
+import { getWallet, getAssets, deleteWalletRecord } from '../api/api';
 import { stockItem, WalletRecord } from '../types/types';
 import AssetSelectionPanel from '../components/AssetSelectionPanel';
 import WalletRecordEdit from '../components/WalletRecordEdit';
@@ -13,6 +13,10 @@ const Wallet: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAssetPanel, setShowAssetPanel] = useState(false);
   const [showEditPanel, setShowEditPanel] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [assets, setAssets] = useState<string[]>([]);
 
   const formatDate = (dateString: string) => {
@@ -80,6 +84,39 @@ const Wallet: React.FC = () => {
     setShowEditPanel(false);
   };
 
+  const handleDeleteClick = (index: number) => {
+    setDeleteIndex(index);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userId || !asset || deleteIndex === null) return;
+    
+    setDeleteLoading(true);
+    try {
+      await deleteWalletRecord(asset, userId, deleteIndex);
+      setDeleteSuccess(true);
+      
+      // Esperar antes de cerrar y recargar
+      setTimeout(() => {
+        setShowDeleteModal(false);
+        setDeleteIndex(null);
+        setDeleteSuccess(false);
+        window.location.reload();
+      }, 1500);
+    } catch (e: any) {
+      setError(`Error al eliminar: ${e.message}`);
+      setShowDeleteModal(false);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setDeleteIndex(null);
+  };
+
   const handleAddNewRecord = () => {
     const emptyRecord: WalletRecord = {
       userId: userId!,
@@ -130,6 +167,36 @@ const Wallet: React.FC = () => {
                 onSave={handleSave} 
                 onCancel={handleCancel} 
               />
+            )}
+          </div>
+        </div>
+      )}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-1">
+          <div className="bg-white p-6 rounded-md shadow-md">
+            <h2 className="text-xl font-semibold mb-4">Confirmar eliminación</h2>
+            {deleteSuccess ? (
+              <p className="mb-6 text-green-500 text-center">Registro eliminado con éxito.</p>
+            ) : (
+              <>
+                <p className="mb-6">¿Estás seguro de que quieres eliminar este registro?</p>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={handleDeleteCancel}
+                    className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md"
+                    disabled={deleteLoading}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleDeleteConfirm}
+                    className={`px-4 py-2 rounded-md text-white ${deleteLoading ? 'bg-gray-500' : 'bg-red-500 hover:bg-red-600'}`}
+                    disabled={deleteLoading}
+                  >
+                    {deleteLoading ? 'Eliminando...' : 'Eliminar'}
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -190,7 +257,8 @@ const Wallet: React.FC = () => {
                           onClick={() => fetchEditPanel(userId!, index, asset!, entry.date, entry.assets)}>
                     <i className="fi fi-sr-customize"></i>
                   </button>
-                  <button className="text-red-500 hover:text-red-700 mx-2">
+                  <button className="text-red-500 hover:text-red-700 mx-2"
+                          onClick={() => handleDeleteClick(index)}>
                     <i className="fi fi-sr-trash"></i>
                   </button>
                 </td>

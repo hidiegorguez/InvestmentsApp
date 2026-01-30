@@ -35,3 +35,14 @@ export async function saveWalletRecord(assetType: string, record: any) {
   }
   return response.json();
 }
+
+export async function deleteWalletRecord(assetType: string, userId: string, index: number) {
+  const response = await fetch(
+    `http://127.0.0.1:8000/wallet/record?asset_type=${encodeURIComponent(assetType)}&user_id=${encodeURIComponent(userId)}&index=${index}`,
+    { method: 'DELETE' }
+  );
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}

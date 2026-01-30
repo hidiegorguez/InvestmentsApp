@@ -159,25 +159,25 @@ def save_wallet_record(blob_client, container: str, asset_type: str, record: mod
         except Exception:
             pass
 
-def delete_wallet_record(blob_client, container: str, asset_type: str, user_id: str, date: str) -> str:
-    blob_name = f"wallets/{asset_type}/wallet.csv"
+def delete_wallet_record(blob_client, container: str, asset_type: str, user_id: str, index: int) -> str:
+    blob_name = f"wallets/{asset_type}/{user_id}_wallet.csv"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
     tmp.close()
     try:
         blob_client.download_blob_to_path(container, blob_name, tmp.name)
         df = pd.read_csv(tmp.name)
 
-        if date not in df["date"].values:
-            raise ValueError(f"No record found with date '{date}' to delete.")
+        if index < 0 or index >= len(df):
+            raise ValueError(f"Index {index} out of range. DataFrame has {len(df)} rows.")
 
-        # Delete the row with the matching date
-        df = df[df["date"] != date]
+        # Delete the row at the given index
+        df = df.drop(df.index[index]).reset_index(drop=True)
 
         # Save back to CSV
         df.to_csv(tmp.name, index=False)
         blob_client.upload_blob_from_path(container, blob_name, tmp.name, overwrite=True)
 
-        return f"Record with date '{date}' deleted successfully."
+        return f"Record at index {index} deleted successfully."
     finally:
         try:
             os.unlink(tmp.name)

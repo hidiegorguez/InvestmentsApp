@@ -98,3 +98,19 @@ def save_wallet_record(asset_type: str = None, record: models.WalletRecord = Non
         return {"message": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/wallet/record")
+def delete_wallet_record(asset_type: str = None, user_id: str = None, index: int = None):
+    """
+    Delete a wallet record by index.
+    """
+    if blob_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob client not configured")
+    
+    try:
+        if not asset_type or not user_id or index is None:
+            raise HTTPException(status_code=400, detail="asset_type, user_id and index are required")
+        result = csv_handler.delete_wallet_record(blob_client, "investmentscontainer", asset_type, user_id, index)
+        return {"message": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
