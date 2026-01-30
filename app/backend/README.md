@@ -1,155 +1,255 @@
 # Investments Backend
 
-Minimal FastAPI backend to expose CSV portfolios stored in Azure Blob Storage and allow appending movements.
+API REST construida con FastAPI para gestionar carteras de inversiones almacenadas en Azure Blob Storage.
 
-Environment variables (one of the authentication methods):
-
-- `AZURE_STORAGE_CONNECTION_STRING`
-- or `AZURE_STORAGE_ACCOUNT` and `AZURE_STORAGE_KEY`
-
-Run locally (recommended to use a virtualenv):
+## 🚀 Ejecución Local
 
 ```bash
+cd app/backend
 pip install -r requirements.txt
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Example requests:
+## 📝 Variables de Entorno
 
-List CSV portfolios in a container:
+Crear archivo `.env` en este directorio:
+
+```env
+# Azure Blob Storage (una de las dos opciones)
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...
+
+# O alternativamente:
+# AZURE_STORAGE_ACCOUNT=nombre_cuenta
+# AZURE_STORAGE_KEY=clave_de_acceso
+
+# JWT para autenticación (generar con: python -c "import secrets; print(secrets.token_hex(32))")
+JWT_SECRET_KEY=tu_clave_secreta_muy_larga_y_aleatoria
+```
+
+## 📁 Estructura de Archivos
+
+```
+backend/
+├── main.py           # Endpoints FastAPI y configuración JWT
+├── models.py         # Modelos Pydantic (WalletRecord, UserSettings, etc.)
+├── csv_handler.py    # Lógica de lectura/escritura de CSVs desde Azure Blob
+├── azure_blob.py     # Cliente Azure Blob Storage
+├── requirements.txt  # Dependencias Python
+├── Dockerfile        # Para despliegue en contenedores
+└── .env              # Variables de entorno (NO commitear)
+```
+
+## 🔐 Sistema de Autenticación
+
+### Flujo de Login
+
+1. Usuario envía `POST /auth/login` con `{ "userId": "...", "password": "..." }`
+2. Backend busca usuario en `data/users.csv` del blob storage
+3. Verifica contraseña con bcrypt
+4. Genera JWT con `sub: userId` y expiración de 24 horas
+5. Devuelve `{ "access_token": "...", "token_type": "bearer", "assets": [...] }`
+
+### Protección de Endpoints
+
+Los endpoints protegidos usan `Depends(verify_token)`:
+- Extraen el token del header `Authorization: Bearer <token>`
+- Verifican firma y expiración
+- Retornan el `user_id` del token para usar en la lógica
+
+```python
+@app.get("/wallet")
+def get_wallet(asset_type: str, current_user: str = Depends(verify_token)):
+    # current_user contiene el userId del token verificado
+    return csv_handler.get_wallet(blob_client, container, asset_type, current_user)
+```
+
+## 🔗 API Endpoints
+
+### Autenticación
+
+#### `POST /auth/login`
+Autentica usuario y devuelve JWT.
+
+**Request:**
+```json
+{
+  "userId": "mi_usuario",
+  "password": "mi_contraseña"
+}
+```
+
+**Response (200):**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "bearer",
+  "assets": ["crypto", "etf", "stock"]
+}
+```
+
+**Response (401):** Usuario o contraseña incorrectos
+
+---
+
+### Cartera
+
+#### `GET /wallet?asset_type={asset}`
+Obtiene todos los registros de la cartera del usuario autenticado.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+[
+  {
+    "date": "2024-01-15",
+    "assets": [
+      {"symbol": "BTC", "total_holding": 0.5, "invested_EUR": 15000, "color": "#F7931A"},
+      {"symbol": "ETH", "total_holding": 2.0, "invested_EUR": 4000, "color": "#627EEA"}
+    ]
+  }
+]
+```
+
+---
+
+#### `POST /wallet/record?asset_type={asset}`
+Crea o actualiza un registro de cartera.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request:**
+```json
+{
+  "userId": "mi_usuario",
+  "asset": "crypto",
+  "index": 0,
+  "date": "2024-01-15",
+  "stock": [
+    {"symbol": "BTC", "total_holding": 0.5, "invested": 15000},
+    {"symbol": "ETH", "total_holding": 2.0, "invested": 4000}
+  ]
+}
+```
+
+- Si `index` corresponde a una fila existente → **actualiza**
+- Si `index` es mayor que el número de filas → **crea nuevo**
+
+---
+
+#### `DELETE /wallet/record?asset_type={asset}&index={n}`
+Elimina un registro por su índice (posición en el CSV, 0-based).
+
+**Headers:** `Authorization: Bearer <token>`
+
+---
+
+### Configuración
+
+#### `GET /settings?asset_type={asset}`
+Obtiene configuración del usuario para un tipo de activo.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "id": "mi_usuario",
+  "start_date": "2020-01-01",
+  "email": "usuario@example.com",
+  "show_holdings": true
+}
+```
+
+---
+
+### Legacy
+
+#### `GET /user/assets?user_id={userId}`
+Lista los tipos de activos que tiene un usuario. **No requiere autenticación** (legacy, usar `/auth/login` en su lugar).
+
+## 📊 Estructura de Datos en Azure Blob
+
+### `data/users.csv`
+```csv
+id,password_hash
+mi_usuario,$2b$12$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+### `wallets/{asset_type}/{userId}_wallet.csv`
+```csv
+date,BTC,BTC_invested_EUR,ETH,ETH_invested_EUR
+2024-01-15,0.5,15000,2.0,4000
+2024-02-01,0.6,18000,2.5,5000
+```
+
+### `data/user_settings_{asset_type}.csv`
+```csv
+id,start_date,email,email_error,show_holdings
+mi_usuario,2020-01-01,email@example.com,,true
+```
+
+### `data/symbol_colors.json`
+```json
+{
+  "BTC": "#F7931A",
+  "ETH": "#627EEA",
+  "IAUP.L": "#F3BA2F"
+}
+```
+
+## 🛠️ Módulos Principales
+
+### `csv_handler.py`
+
+| Función | Descripción |
+|---------|-------------|
+| `get_user(blob_client, container, user_id)` | Busca usuario en `data/users.csv`, retorna dict con `id` y `password_hash` |
+| `get_wallet(blob_client, container, asset_type, user_id)` | Lee CSV de cartera y lo transforma a formato JSON con colores |
+| `save_wallet_record(blob_client, container, asset_type, record)` | Guarda o actualiza un registro en el CSV |
+| `delete_wallet_record(blob_client, container, asset_type, user_id, index)` | Elimina un registro por índice |
+| `get_user_settings(blob_client, container, user_id, asset_type)` | Lee configuración del usuario |
+
+### `azure_blob.py`
+
+| Método | Descripción |
+|--------|-------------|
+| `from_env()` | Crea cliente desde variables de entorno |
+| `list_blobs(container)` | Lista blobs en un contenedor |
+| `download_blob_to_path(container, blob_name, path)` | Descarga blob a archivo local |
+| `upload_blob_from_path(container, blob_name, path)` | Sube archivo local a blob |
+
+### `models.py`
+
+| Modelo | Campos |
+|--------|--------|
+| `WalletRecord` | userId, asset, index, date, stock: List[StockItem] |
+| `StockItem` | symbol, total_holding, invested |
+| `WalletDay` | date, assets: List[AssetPosition] |
+| `AssetPosition` | symbol, total_holding, invested_EUR, color |
+| `UserSettings` | id, start_date, email, email_error, show_holdings |
+
+## 🚢 Despliegue
+
+### Docker
 
 ```bash
-curl 'http://127.0.0.1:8000/portfolio?container=my-container'
+docker build -t investments-backend .
+docker run -p 8000:8000 --env-file .env investments-backend
 ```
 
-**New Endpoint: /user/assets**
-
-This endpoint allows you to check which assets a user has. It receives a `user_id` as a parameter and returns a list of asset types for which the user has a wallet file. If the user is not found, it returns a 404 error.
-
-Example:
+### Fly.io
 
 ```bash
-curl 'http://127.0.0.1:8000/user/assets?user_id=some_user_id'
+fly launch
+fly secrets set AZURE_STORAGE_CONNECTION_STRING="..." JWT_SECRET_KEY="..."
+fly deploy
 ```
 
-Notes:
-- The service downloads CSVs to a temporary file and uses `pandas` to read them.
-- Appending or updating CSVs is intentionally not exposed via a public endpoint yet — implement a secured POST if you want frontend write access.
-- This is a minimal scaffold to integrate with your existing projects (`investments` front-end and the Python email/dashboard tool). Adjust schemas and CSV formats as needed.
+## ⚠️ Notas Importantes
 
-Blob structure
-:
-The backend assumes the following conventions in your container (example):
-
-```
-data/coin_symbols.json
-data/symbol_colors.json
-data/user_settings_crypto.csv
-data/user_settings_etf.csv
-data/user_settings_stock.csv
-graphs/crypto/<id>_line_graph.png
-graphs/crypto/<id>_pie_chart.png
-wallets/crypto/<id>_wallet.csv
-wallets/etf/<id>_wallet.csv
-wallets/stock/<id>_wallet.csv
-```
-
-Use the `GET /wallet?container=<container>&asset_type=<crypto|stock|etf>&user_id=<id>` endpoint to fetch a wallet as JSON records.
-
-The wallet response now includes a `color` field on each asset taken from `data/symbol_colors.json` when available. Example asset entry:
-
-```
-{"symbol":"IAUP.L","total_holding":61.71,"invested_EUR":1000,"color":"#F3BA2F"}
-```
-
-Get user settings for an asset type (filters `data/user_settings_{asset}.csv` by `id` column):
-
-```
-curl "http://127.0.0.1:8000/settings?asset_type=crypto&user_id=GPLKoW6RfaE"
-```
-
-If you need programmatic access from other scripts, use the `csv_handler` helpers directly (`get_wallet`, `get_user_settings`).
-
-Default asset color
-:
-When a symbol is not present in `data/symbol_colors.json`, the backend attaches a default color `#808080` to the asset in the wallet response. Update `data/symbol_colors.json` in your blob container to customize colors.
-```
-
-WRITE_FILE: app/backend/README.md
-```
-# Investments Backend
-
-Minimal FastAPI backend to expose CSV portfolios stored in Azure Blob Storage and allow appending movements.
-
-Environment variables (one of the authentication methods):
-
-- `AZURE_STORAGE_CONNECTION_STRING`
-- or `AZURE_STORAGE_ACCOUNT` and `AZURE_STORAGE_KEY`
-
-Run locally (recommended to use a virtualenv):
-
-```bash
-pip install -r requirements.txt
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
-```
-
-Example requests:
-
-List CSV portfolios in a container:
-
-```bash
-curl 'http://127.0.0.1:8000/portfolio?container=my-container'
-```
-
-**New Endpoint: /user/assets**
-
-This endpoint allows you to check which assets a user has. It receives a `user_id` as a parameter and returns a list of asset types for which the user has a wallet file. If the user is not found, it returns a 404 error.
-
-Example:
-
-```bash
-curl 'http://127.0.0.1:8000/user/assets?user_id=some_user_id'
-```
-
-Notes:
-- The service downloads CSVs to a temporary file and uses `pandas` to read them.
-- Appending or updating CSVs is intentionally not exposed via a public endpoint yet — implement a secured POST if you want frontend write access.
-- This is a minimal scaffold to integrate with your existing projects (`investments` front-end and the Python email/dashboard tool). Adjust schemas and CSV formats as needed.
-
-Blob structure
-:
-The backend assumes the following conventions in your container (example):
-
-```
-data/coin_symbols.json
-data/symbol_colors.json
-data/user_settings_crypto.csv
-data/user_settings_etf.csv
-data/user_settings_stock.csv
-graphs/crypto/<id>_line_graph.png
-graphs/crypto/<id>_pie_chart.png
-wallets/crypto/<id>_wallet.csv
-wallets/etf/<id>_wallet.csv
-wallets/stock/<id>_wallet.csv
-```
-
-Use the `GET /wallet?container=<container>&asset_type=<crypto|stock|etf>&user_id=<id>` endpoint to fetch a wallet as JSON records.
-
-The wallet response now includes a `color` field on each asset taken from `data/symbol_colors.json` when available. Example asset entry:
-
-```
-{"symbol":"","total_holding":0,"invested_EUR":0,"color":"#000000"}
-```
-
-Get user settings for an asset type (filters `data/user_settings_{asset}.csv` by `id` column):
-
-```
-curl "http://127.0.0.1:8000/settings?asset_type=crypto&user_id={user_id}"
-```
-
-If you need programmatic access from other scripts, use the `csv_handler` helpers directly (`get_wallet`, `get_user_settings`).
-
-Default asset color
-:
-When a symbol is not present in `data/symbol_colors.json`, the backend attaches a default color `#808080` to the asset in the wallet response. Update `data/symbol_colors.json` in your blob container to customize colors.
-```
+1. **El archivo `.env` NO debe commitearse** - está en `.gitignore`
+2. **Los CSVs se descargan a archivos temporales** para procesarlos con Pandas
+3. **El color por defecto** para símbolos no encontrados es `#808080`
+4. **El token JWT expira en 24 horas** - el frontend redirige a login automáticamente
+5. **La eliminación es por índice**, no por fecha (permite múltiples registros con misma fecha)
