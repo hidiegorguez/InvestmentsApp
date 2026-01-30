@@ -22,7 +22,7 @@ export async function getAssets(userId: string) {
   return response.json();
 }
 
-export async function editWalletRecord(assetType: string, record: any) {
+export async function saveWalletRecord(assetType: string, record: any) {
   const response = await fetch(`http://127.0.0.1:8000/wallet/record?asset_type=${encodeURIComponent(assetType)}`, {
     method: 'POST',
     headers: {

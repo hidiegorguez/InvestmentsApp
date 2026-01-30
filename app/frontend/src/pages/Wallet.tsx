@@ -88,7 +88,7 @@ const Wallet: React.FC = () => {
       date: new Date().toISOString().split('T')[0], // Fecha actual en formato ISO
       stock: assetSymbols.map((symbol: string) => ({
         symbol,
-        holding: 0,
+        total_holding: 0,
         invested: 0,
       })),
     };

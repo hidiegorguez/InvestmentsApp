@@ -111,7 +111,7 @@ def get_user_settings(blob_client, container: str, user_id: str, asset_type: str
         except Exception:
             pass
 
-def edit_wallet_record(blob_client, container: str, asset_type: str, record: models.WalletRecord) -> str:
+def save_wallet_record(blob_client, container: str, asset_type: str, record: models.WalletRecord) -> str:
     blob_name = f"wallets/{asset_type}/{record.userId}_wallet.csv"
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
     tmp.close()
@@ -123,9 +123,6 @@ def edit_wallet_record(blob_client, container: str, asset_type: str, record: mod
         
         if date_val is None:
             raise ValueError("Record must contain 'date' field")
-        
-        if date_val in df["date"].values and False:  # Second condition if add new record only
-            raise ValueError(f"Record with date '{date_val}' already exists. Use index to update existing record.")
 
         # Prepare a dict for the new row
         new_row = {"date": date_val}

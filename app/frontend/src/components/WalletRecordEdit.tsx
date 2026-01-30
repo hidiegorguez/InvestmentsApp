@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WalletRecord } from '../types/types';
-import { editWalletRecord } from '../api/api';
+import { saveWalletRecord } from '../api/api';
 
 interface WalletRecordEditProps extends WalletRecord {
   onSave: (record: WalletRecord) => void;
@@ -24,7 +24,7 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
     setEditDate(e.target.value);
   };
 
-  const handleStockChange = (symbol: string, field: 'holding' | 'invested', value: number) => {
+  const handleStockChange = (symbol: string, field: 'total_holding' | 'invested', value: number) => {
     setEditStock((prevStock) =>
       prevStock.map((item) =>
         item.symbol === symbol ? { ...item, [field]: value } : item
@@ -46,7 +46,7 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
     setSuccessMessage(null);
 
     try {
-      await editWalletRecord(updatedRecord.asset, updatedRecord);
+      await saveWalletRecord(updatedRecord.asset, updatedRecord);
       setSuccessMessage('Operación realizada con éxito.');
       
       // Esperar antes de cerrar y recargar
@@ -85,7 +85,7 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
                   type="number"
                   value={asset.total_holding}
                   onChange={(e) =>
-                    handleStockChange(asset.symbol, 'holding', parseFloat(e.target.value))
+                    handleStockChange(asset.symbol, 'total_holding', parseFloat(e.target.value))
                   }
                   className="w-full p-2 border rounded-md mb-2"
                 />
