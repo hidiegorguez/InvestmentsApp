@@ -86,68 +86,74 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
 
   return (
     <div className="flex items-center justify-center">
-      <div className="w-xl bg-blue p-6 rounded-md shadow-xl">
-        <h2 className="text-2xl font-semibold mb-4">Edit operation</h2>
+      <div className="w-full bg-white p-4 sm:p-6 rounded-md shadow-xl max-h-[80vh] overflow-y-auto">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4">Edit operation</h2>
         <div className="mb-4">
           <label className="block text-sm font-medium mb-2">Date:</label>
           <input
             type="date"
             value={editDate}
             onChange={handleDateChange}
-            className="w-full p-2 border rounded-md"
+            className="w-full p-3 sm:p-2 border rounded-md text-base"
           />
         </div>
         <div>
-          <h3 className="text-lg font-semibold mb-2">Assets</h3>
+          <h3 className="text-base sm:text-lg font-semibold mb-2">Assets</h3>
           <ul>
             {stock.map((item) => (
-              <li key={item.symbol} className="mb-4">
-                <span className="font-bold block mb-1">{item.symbol}</span>
-                <label className="block text-sm font-medium mb-1">Holding:</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={editStock[item.symbol]?.total_holding ?? ''}
-                  onChange={(e) => handleStockChange(item.symbol, 'total_holding', e.target.value)}
-                  className="w-full p-2 border rounded-md mb-2"
-                />
-                <label className="block text-sm font-medium mb-1">Invested (EUR):</label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={editStock[item.symbol]?.invested ?? ''}
-                  onChange={(e) => handleStockChange(item.symbol, 'invested', e.target.value)}
-                  className="w-full p-2 border rounded-md"
-                />
+              <li key={item.symbol} className="mb-4 p-3 bg-gray-50 rounded-md">
+                <span className="font-bold block mb-2 text-orange-600">{item.symbol}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Holding:</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={editStock[item.symbol]?.total_holding ?? ''}
+                      onChange={(e) => handleStockChange(item.symbol, 'total_holding', e.target.value)}
+                      className="w-full p-3 sm:p-2 border rounded-md text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Invested (EUR):</label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={editStock[item.symbol]?.invested ?? ''}
+                      onChange={(e) => handleStockChange(item.symbol, 'invested', e.target.value)}
+                      className="w-full p-3 sm:p-2 border rounded-md text-base"
+                    />
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
         </div>
         <div className="flex flex-col justify-end mt-4">
           {successMessage ? (
-            <div className="text-center text-green-500">
+            <div className="text-center text-green-500 py-2">
               {successMessage}
             </div>
           ) : (
             <>
-              <div className="flex justify-end">
+              <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
                 <button
                   onClick={onCancel}
-                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md mr-2"
+                  className="px-4 py-3 sm:py-2 bg-gray-300 hover:bg-gray-400 active:bg-gray-500 rounded-md order-2 sm:order-1"
                   disabled={loading}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className={`px-4 py-2 rounded-md text-white ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600'}`}
+                  className={`px-4 py-3 sm:py-2 rounded-md text-white order-1 sm:order-2 ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'}`}
                   disabled={loading}
                 >
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
               {error && (
-                <div className="mt-4 text-center text-red-500">
+                <div className="mt-4 text-center text-red-500 text-sm">
                   {error}
                 </div>
               )}

@@ -51,9 +51,9 @@ const Login: React.FC = () => {
   return (
     <>
       {!succesfullLogin ? (
-      <div className="flex items-center justify-center">
-        <div className="w-lg bg-white p-6 rounded-md shadow-xl">
-          <h2 className="text-2xl font-semibold mb-4">Login</h2>
+      <div className="flex items-center justify-center min-h-[80vh] px-4">
+        <div className="w-full max-w-sm sm:max-w-md bg-white p-4 sm:p-6 rounded-md shadow-xl">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4">Login</h2>
 
           <input
             type="text"
@@ -62,7 +62,7 @@ const Login: React.FC = () => {
             onChange={(e) => setUserId(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isLoading}
-            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-orange-600 disabled:opacity-50"
+            className="w-full border border-gray-300 rounded px-3 py-3 sm:py-2 mb-4 text-base focus:outline-none focus:ring-2 focus:ring-orange-600 disabled:opacity-50"
           />
 
           <input
@@ -72,13 +72,13 @@ const Login: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isLoading}
-            className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-orange-600 disabled:opacity-50"
+            className="w-full border border-gray-300 rounded px-3 py-3 sm:py-2 mb-4 text-base focus:outline-none focus:ring-2 focus:ring-orange-600 disabled:opacity-50"
           />
 
           <button
             onClick={handleLogin}
             disabled={isLoading}
-            className="w-full bg-orange-600 text-white py-2 rounded disabled:opacity-50 flex items-center justify-center"
+            className="w-full bg-orange-600 text-white py-3 sm:py-2 rounded text-base font-medium disabled:opacity-50 flex items-center justify-center active:bg-orange-700"
           >
             {isLoading ? (
               <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -90,7 +90,7 @@ const Login: React.FC = () => {
             )}
           </button>
 
-          {error && <p className="text-red-600 mt-3">{error}</p>}
+          {error && <p className="text-red-600 mt-3 text-sm sm:text-base">{error}</p>}
         </div>
       </div>
     ) : (

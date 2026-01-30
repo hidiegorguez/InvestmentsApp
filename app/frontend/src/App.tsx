@@ -35,7 +35,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <div style={{ padding: 24, fontFamily: 'Inter, system-ui, Arial' , backgroundColor: '#ffcc88', minHeight: '100vh' }}>
+        <div className="p-4 sm:p-6 md:p-8 lg:p-10 min-h-screen" style={{ fontFamily: 'Inter, system-ui, Arial', backgroundColor: '#ffcc88' }}>
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/wallet/:userId/:asset" element={<WalletRoute />} />

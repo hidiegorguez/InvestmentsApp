@@ -21,18 +21,18 @@ const AssetSelectionPanel: React.FC<AssetSelectionPanelProps> = ({ userId, asset
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <div className="w-md bg-white p-6 rounded-md shadow-xl">
-        <h2 className="text-2xl font-semibold mb-4">Select an Asset</h2>
+    <div className="flex items-center justify-center min-h-[60vh] px-4">
+      <div className="w-full max-w-sm sm:max-w-md bg-white p-4 sm:p-6 rounded-md shadow-xl">
+        <h2 className="text-xl sm:text-2xl font-semibold mb-4">Select an Asset</h2>
         {selectedAsset ? (
           <p className="text-center text-green-500">Cargando {selectedAsset}...</p>
         ) : (
           <ul>
             {assets.map((asset) => (
-              <li key={asset} className="mb-2">
+              <li key={asset} className="mb-3">
                 <button
                   onClick={() => handleAssetClick(asset)}
-                  className="w-full bg-orange-600 text-white py-2 px-4 rounded hover:bg-orange-700"
+                  className="w-full bg-orange-600 text-white py-3 sm:py-2 px-4 rounded text-base font-medium hover:bg-orange-700 active:bg-orange-800 uppercase"
                 >
                   {asset}
                 </button>
