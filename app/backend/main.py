@@ -24,7 +24,8 @@ security = HTTPBearer()
 app = FastAPI(title="Investments Backend")
 
 origins = [
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://investments-app-ashy.vercel.app",
 ]
 
 app.add_middleware(
