@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, Button, Input } from './ui';
+import { Modal, Button, Input, IconButton } from './ui';
 
 interface StockManagerModalProps {
   isOpen: boolean;
@@ -199,42 +199,40 @@ export default function StockManagerModal({
                       autoFocus
                       className="flex-1 !p-1.5 text-sm"
                     />
-                    <button
+                    <IconButton
+                      icon="fi-sr-check"
+                      variant="success"
                       onClick={handleSaveEdit}
                       disabled={loading}
-                      className="p-1.5 text-emerald-600 hover:text-emerald-700 transition-colors"
                       title="Save"
-                    >
-                      <i className="fi fi-sr-check text-lg"></i>
-                    </button>
-                    <button
+                    />
+                    <IconButton
+                      icon="fi-sr-cross-small"
+                      variant="default"
                       onClick={handleCancelEdit}
                       disabled={loading}
-                      className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
                       title="Cancel"
-                    >
-                      <i className="fi fi-sr-cross-small text-lg"></i>
-                    </button>
+                    />
                   </>
                 ) : (
                   <>
                     <span className="flex-1 font-medium text-gray-900">{stock}</span>
-                    <button
+                    <IconButton
+                      icon="fi-sr-customize"
+                      variant="warning"
+                      size="sm"
                       onClick={() => handleStartEdit(stock)}
                       disabled={loading || deletingStock !== null}
-                      className="p-1.5 text-gray-400 hover:text-orange-500 disabled:opacity-50 transition-colors"
                       title="Rename"
-                    >
-                      <i className="fi fi-sr-customize text-base"></i>
-                    </button>
-                    <button
+                    />
+                    <IconButton
+                      icon="fi-sr-trash"
+                      variant="danger"
+                      size="sm"
                       onClick={() => handleDeleteClick(stock)}
                       disabled={loading || deletingStock !== null}
-                      className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors"
                       title="Delete"
-                    >
-                      <i className="fi fi-sr-trash text-base"></i>
-                    </button>
+                    />
                   </>
                 )}
               </div>

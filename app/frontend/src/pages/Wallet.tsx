@@ -5,7 +5,7 @@ import { stockItem, WalletRecord } from '../types/types';
 import AssetSelectionPanel from '../components/AssetSelectionPanel';
 import WalletRecordEdit from '../components/WalletRecordEdit';
 import StockManagerModal from '../components/StockManagerModal';
-import { Modal, Button, ConfirmDialog } from '../components/ui';
+import { Modal, Button, ConfirmDialog, IconButton } from '../components/ui';
 
 const Wallet: React.FC = () => {
   const { userId, asset } = useParams<{ userId: string; asset: string }>();
@@ -162,8 +162,9 @@ const Wallet: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
             <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
             <div className="flex flex-col sm:flex-row gap-2">
-              <div className="h-10 w-full sm:w-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-full sm:w-32 bg-orange-600 rounded animate-pulse"></div>
               <div className="h-10 w-full sm:w-36 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-full sm:w-32 bg-gray-800 rounded animate-pulse"></div>
             </div>
           </div>
           {/* Table skeleton */}
@@ -311,20 +312,19 @@ const Wallet: React.FC = () => {
                     );
                   })}
                   <td className="py-1 px-3 text-center whitespace-nowrap">
-                    <button 
-                      className="text-gray-400 hover:text-orange-500 p-1 rounded transition-colors"
+                    <IconButton
+                      icon="fi-sr-customize"
+                      variant="warning"
                       onClick={() => fetchEditPanel(userId!, index, asset!, entry.date, entry.assets)}
                       title="Edit record"
-                    >
-                      <i className="fi fi-sr-customize text-lg"></i>
-                    </button>
-                    <button 
-                      className="text-gray-400 hover:text-gray-700 p-1 rounded transition-colors ml-1"
+                    />
+                    <IconButton
+                      icon="fi-sr-trash"
+                      variant="danger"
                       onClick={() => handleDeleteClick(index)}
                       title="Delete record"
-                    >
-                      <i className="fi fi-sr-trash text-lg"></i>
-                    </button>
+                      className="ml-1"
+                    />
                   </td>
                 </tr>
               ))}

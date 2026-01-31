@@ -3,3 +3,4 @@ export { Input } from './Input';
 export { Modal } from './Modal';
 export { ConfirmDialog } from './ConfirmDialog';
 export { Spinner } from './Spinner';
+export { IconButton } from './IconButton';
