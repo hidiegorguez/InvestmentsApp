@@ -5,6 +5,7 @@ import { stockItem, WalletRecord } from '../types/types';
 import AssetSelectionPanel from '../components/AssetSelectionPanel';
 import WalletRecordEdit from '../components/WalletRecordEdit';
 import StockManagerModal from '../components/StockManagerModal';
+import { Modal, Button, ConfirmDialog } from '../components/ui';
 
 const Wallet: React.FC = () => {
   const { userId, asset } = useParams<{ userId: string; asset: string }>();
@@ -198,62 +199,40 @@ const Wallet: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center">
-      {showAssetPanel && userId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10 p-4">
-          <div className="bg-white p-5 rounded-lg shadow-lg w-full max-w-sm sm:max-w-md">
-            <AssetSelectionPanel userId={userId} assets={assets} onClose={() => setShowAssetPanel(false)} />
-            <button
-              onClick={() => setShowAssetPanel(false)}
-              className="mt-3 w-full border border-gray-300 text-gray-700 px-4 py-3 sm:py-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-      {showEditPanel && userId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10 p-4 overflow-y-auto">
-          <div className="bg-white p-5 rounded-lg shadow-lg w-full max-w-sm sm:max-w-md my-4">
-            {record && (
-              <WalletRecordEdit 
-                {...record} 
-                onSave={handleSave} 
-                onCancel={handleCancel} 
-              />
-            )}
-          </div>
-        </div>
-      )}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10 p-4">
-          <div className="bg-white p-5 sm:p-6 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Confirm deletion</h2>
-            {deleteSuccess ? (
-              <p className="mb-6 text-emerald-600 text-center">Record deleted successfully.</p>
-            ) : (
-              <>
-                <p className="mb-6 text-sm sm:text-base text-gray-600">Are you sure you want to delete this record?</p>
-                <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
-                  <button
-                    onClick={handleDeleteCancel}
-                    className="px-4 py-3 sm:py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg order-2 sm:order-1 transition-colors"
-                    disabled={deleteLoading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDeleteConfirm}
-                    className={`px-4 py-3 sm:py-2 rounded-lg text-white order-1 sm:order-2 transition-colors ${deleteLoading ? 'bg-gray-400' : 'bg-gray-800 hover:bg-gray-900'}`}
-                    disabled={deleteLoading}
-                  >
-                    {deleteLoading ? 'Deleting...' : 'Delete'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      <Modal isOpen={showAssetPanel && !!userId} onClose={() => setShowAssetPanel(false)} size="sm">
+        <AssetSelectionPanel userId={userId!} assets={assets} onClose={() => setShowAssetPanel(false)} />
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => setShowAssetPanel(false)}
+          fullWidth
+          className="mt-3"
+        >
+          Close
+        </Button>
+      </Modal>
+      <Modal isOpen={showEditPanel && !!userId} size="md">
+        {record && (
+          <WalletRecordEdit 
+            {...record} 
+            onSave={handleSave} 
+            onCancel={handleCancel} 
+          />
+        )}
+      </Modal>
+      <ConfirmDialog
+        isOpen={showDeleteModal}
+        title="Confirm deletion"
+        message="Are you sure you want to delete this record?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        loading={deleteLoading}
+        success={deleteSuccess}
+        successMessage="Record deleted successfully."
+        variant="secondary"
+      />
       <StockManagerModal
         isOpen={showStockManager}
         onClose={() => setShowStockManager(false)}
@@ -266,24 +245,27 @@ const Wallet: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
           <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">{formatAssetName(asset || '')} Wallet</h2>
           <div className="flex flex-col sm:flex-row gap-2">
-            <button
+            <Button
+              variant="primary"
+              size="md"
               onClick={fetchAssets}
-              className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 active:bg-orange-700 transition-colors"
             >
               Switch Asset
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
+              size="md"
               onClick={() => setShowStockManager(true)}
-              className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 active:bg-gray-100 transition-colors"
             >
               Manage Stocks
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
               onClick={handleAddNewRecord}
-              className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-900 active:bg-black transition-colors"
             >
               New Record
-            </button>
+            </Button>
           </div>
         </div>
         

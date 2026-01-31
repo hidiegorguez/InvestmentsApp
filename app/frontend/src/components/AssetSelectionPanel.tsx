@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button, Spinner } from './ui';
 
 interface AssetSelectionPanelProps {
   userId: string;
@@ -30,30 +31,24 @@ const AssetSelectionPanel: React.FC<AssetSelectionPanelProps> = ({ userId, asset
         <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Select Asset</h2>
         <div className="space-y-2">
           {assets.map((asset) => (
-            <button
+            <Button
               key={asset}
               onClick={() => handleAssetClick(asset)}
               disabled={selectedAsset !== null}
-              className={`w-full py-3 sm:py-2.5 px-4 rounded-lg text-base font-medium transition-colors ${
-                selectedAsset === asset
-                  ? 'bg-orange-600 text-white'
-                  : selectedAsset !== null
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-orange-500 text-white hover:bg-orange-600 active:bg-orange-700'
-              }`}
+              fullWidth
+              size="lg"
+              variant={selectedAsset === asset ? 'primary' : selectedAsset !== null ? 'outline' : 'primary'}
+              className={selectedAsset !== null && selectedAsset !== asset ? 'opacity-50 cursor-not-allowed' : ''}
             >
               {selectedAsset === asset ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                  </svg>
+                  <Spinner size="sm" />
                   {formatAssetName(asset)}
                 </span>
               ) : (
                 formatAssetName(asset)
               )}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
