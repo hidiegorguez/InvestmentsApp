@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { getWallet, getAssets, deleteWalletRecord } from '../api/api';
+import { getWallet, getAssets, deleteWalletRecord, addWalletStock, renameWalletStock, deleteWalletStock } from '../api/api';
 import { stockItem, WalletRecord } from '../types/types';
 import AssetSelectionPanel from '../components/AssetSelectionPanel';
 import WalletRecordEdit from '../components/WalletRecordEdit';
+import StockManagerModal from '../components/StockManagerModal';
 
 const Wallet: React.FC = () => {
   const { userId, asset } = useParams<{ userId: string; asset: string }>();
@@ -18,6 +19,7 @@ const Wallet: React.FC = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [assets, setAssets] = useState<string[]>([]);
+  const [showStockManager, setShowStockManager] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -133,6 +135,21 @@ const Wallet: React.FC = () => {
     setShowEditPanel(true);
   };
 
+  const handleAddStock = async (stockName: string) => {
+    if (!asset) return;
+    await addWalletStock(asset, stockName);
+  };
+
+  const handleRenameStock = async (oldName: string, newName: string) => {
+    if (!asset) return;
+    await renameWalletStock(asset, oldName, newName);
+  };
+
+  const handleDeleteStock = async (stockName: string) => {
+    if (!asset) return;
+    await deleteWalletStock(asset, stockName);
+  };
+
   if (error) {
     return <div>Error: {error}</div>;
   }
@@ -204,18 +221,18 @@ const Wallet: React.FC = () => {
         </div>
       )}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-10 p-4\">
-          <div className="bg-white p-4 sm:p-6 rounded-md shadow-md w-full max-w-sm\">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4\">Confirmar eliminación</h2>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-10 p-4">
+          <div className="bg-white p-4 sm:p-6 rounded-md shadow-md w-full max-w-sm">
+            <h2 className="text-lg sm:text-xl font-semibold mb-4">Confirmar eliminación</h2>
             {deleteSuccess ? (
-              <p className="mb-6 text-green-500 text-center\">Registro eliminado con éxito.</p>
+              <p className="mb-6 text-green-500 text-center">Registro eliminado con éxito.</p>
             ) : (
               <>
-                <p className="mb-6 text-sm sm:text-base\">¿Estás seguro de que quieres eliminar este registro?</p>
-                <div className="flex flex-col sm:flex-row sm:justify-end gap-2\">
+                <p className="mb-6 text-sm sm:text-base">¿Estás seguro de que quieres eliminar este registro?</p>
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
                   <button
                     onClick={handleDeleteCancel}
-                    className="px-4 py-3 sm:py-2 bg-gray-300 hover:bg-gray-400 active:bg-gray-500 rounded-md order-2 sm:order-1\"
+                    className="px-4 py-3 sm:py-2 bg-gray-300 hover:bg-gray-400 active:bg-gray-500 rounded-md order-2 sm:order-1"
                     disabled={deleteLoading}
                   >
                     Cancelar
@@ -233,19 +250,33 @@ const Wallet: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="w-full bg-white p-3 sm:p-6 rounded-md shadow-xl relative\">
+      <StockManagerModal
+        isOpen={showStockManager}
+        onClose={() => setShowStockManager(false)}
+        stocks={assetSymbols}
+        onAddStock={handleAddStock}
+        onRenameStock={handleRenameStock}
+        onDeleteStock={handleDeleteStock}
+      />
+      <div className="w-full bg-white p-3 sm:p-6 rounded-md shadow-xl relative">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
           <h2 className="text-xl sm:text-2xl font-semibold\">{asset?.toUpperCase()} WALLET</h2>
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={fetchAssets}
-              className="bg-orange-600 text-white px-4 py-2 sm:py-2 rounded text-sm font-medium hover:bg-orange-700 active:bg-orange-800\"
+              className="bg-orange-600 text-white px-4 py-2 sm:py-2 rounded text-sm font-medium hover:bg-orange-700 active:bg-orange-800"
             >
               Change Asset
             </button>
             <button
+              onClick={() => setShowStockManager(true)}
+              className="bg-blue-600 text-white px-4 py-2 sm:py-2 rounded text-sm font-medium hover:bg-blue-700 active:bg-blue-800"
+            >
+              Edit Stocks
+            </button>
+            <button
               onClick={handleAddNewRecord}
-              className="bg-green-600 text-white px-4 py-2 sm:py-2 rounded text-sm font-medium hover:bg-green-700 active:bg-green-800\"
+              className="bg-green-600 text-white px-4 py-2 sm:py-2 rounded text-sm font-medium hover:bg-green-700 active:bg-green-800"
             >
               Add New Record
             </button>

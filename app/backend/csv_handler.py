@@ -209,3 +209,113 @@ def delete_wallet_record(blob_client, container: str, asset_type: str, user_id: 
             os.unlink(tmp.name)
         except Exception:
             pass
+
+
+def add_wallet_stock(blob_client, container: str, asset_type: str, user_id: str, stock_name: str) -> str:
+    """
+    Add two new columns (stock_name and stock_name_invested_EUR) to the user's wallet CSV.
+    """
+    blob_name = f"wallets/{asset_type}/{user_id}_wallet.csv"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
+    tmp.close()
+    try:
+        blob_client.download_blob_to_path(container, blob_name, tmp.name)
+        df = pd.read_csv(tmp.name)
+        
+        # Verificar que el stock no exista ya
+        holding_col = stock_name
+        invested_col = f"{stock_name}_invested_EUR"
+        
+        if holding_col in df.columns or invested_col in df.columns:
+            raise ValueError(f"Stock '{stock_name}' already exists")
+        
+        # Añadir nuevas columnas con valores 0
+        df[holding_col] = 0
+        df[invested_col] = 0
+        
+        # Guardar CSV actualizado
+        df.to_csv(tmp.name, index=False)
+        blob_client.upload_blob_from_path(container, blob_name, tmp.name, overwrite=True)
+        
+        return f"Stock '{stock_name}' added successfully"
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except Exception:
+            pass
+
+
+def rename_wallet_stock(blob_client, container: str, asset_type: str, user_id: str, old_name: str, new_name: str) -> str:
+    """
+    Rename a stock's columns in the user's wallet CSV.
+    """
+    blob_name = f"wallets/{asset_type}/{user_id}_wallet.csv"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
+    tmp.close()
+    try:
+        blob_client.download_blob_to_path(container, blob_name, tmp.name)
+        df = pd.read_csv(tmp.name)
+        
+        old_holding_col = old_name
+        old_invested_col = f"{old_name}_invested_EUR"
+        new_holding_col = new_name
+        new_invested_col = f"{new_name}_invested_EUR"
+        
+        # Verificar que el stock antiguo existe
+        if old_holding_col not in df.columns:
+            raise ValueError(f"Stock '{old_name}' not found")
+        
+        # Verificar que el nuevo nombre no exista ya
+        if new_holding_col in df.columns or new_invested_col in df.columns:
+            raise ValueError(f"Stock '{new_name}' already exists")
+        
+        # Renombrar columnas
+        df = df.rename(columns={
+            old_holding_col: new_holding_col,
+            old_invested_col: new_invested_col
+        })
+        
+        # Guardar CSV actualizado
+        df.to_csv(tmp.name, index=False)
+        blob_client.upload_blob_from_path(container, blob_name, tmp.name, overwrite=True)
+        
+        return f"Stock '{old_name}' renamed to '{new_name}' successfully"
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except Exception:
+            pass
+
+
+def delete_wallet_stock(blob_client, container: str, asset_type: str, user_id: str, stock_name: str) -> str:
+    """
+    Delete a stock's columns from the user's wallet CSV.
+    """
+    blob_name = f"wallets/{asset_type}/{user_id}_wallet.csv"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
+    tmp.close()
+    try:
+        blob_client.download_blob_to_path(container, blob_name, tmp.name)
+        df = pd.read_csv(tmp.name)
+        
+        holding_col = stock_name
+        invested_col = f"{stock_name}_invested_EUR"
+        
+        # Verificar que el stock existe
+        if holding_col not in df.columns:
+            raise ValueError(f"Stock '{stock_name}' not found")
+        
+        # Eliminar columnas
+        cols_to_drop = [c for c in [holding_col, invested_col] if c in df.columns]
+        df = df.drop(columns=cols_to_drop)
+        
+        # Guardar CSV actualizado
+        df.to_csv(tmp.name, index=False)
+        blob_client.upload_blob_from_path(container, blob_name, tmp.name, overwrite=True)
+        
+        return f"Stock '{stock_name}' deleted successfully"
+    finally:
+        try:
+            os.unlink(tmp.name)
+        except Exception:
+            pass

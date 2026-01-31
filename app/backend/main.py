@@ -66,6 +66,19 @@ class LoginRequest(models.BaseModel):
     password: str
 
 
+class AddStockRequest(models.BaseModel):
+    stock_name: str
+
+
+class RenameStockRequest(models.BaseModel):
+    old_name: str
+    new_name: str
+
+
+class DeleteStockRequest(models.BaseModel):
+    stock_name: str
+
+
 @app.post("/auth/login")
 def login(request: LoginRequest):
     """
@@ -190,5 +203,81 @@ def delete_wallet_record(asset_type: str = None, index: int = None, current_user
             raise HTTPException(status_code=400, detail="asset_type and index are required")
         result = csv_handler.delete_wallet_record(blob_client, "investmentscontainer", asset_type, current_user, index)
         return {"message": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/wallet/stock")
+def add_wallet_stock(asset_type: str = None, request: AddStockRequest = None, current_user: str = Depends(verify_token)):
+    """
+    Add a new stock/symbol (two columns: invested + holding) to the user's wallet CSV.
+    """
+    if blob_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob client not configured")
+    
+    try:
+        if not asset_type or not request:
+            raise HTTPException(status_code=400, detail="asset_type and stock_name are required")
+        
+        # Validar nombre del stock (máximo 10 caracteres, alfanumérico)
+        stock_name = request.stock_name.strip().upper()
+        if not stock_name or len(stock_name) > 10:
+            raise HTTPException(status_code=400, detail="Stock name must be 1-10 characters")
+        if not re.match(r'^[a-zA-Z0-9]+$', stock_name):
+            raise HTTPException(status_code=400, detail="Stock name must be alphanumeric only")
+        
+        result = csv_handler.add_wallet_stock(blob_client, "investmentscontainer", asset_type, current_user, stock_name)
+        return {"message": result, "stock_name": stock_name}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.put("/wallet/stock")
+def rename_wallet_stock(asset_type: str = None, request: RenameStockRequest = None, current_user: str = Depends(verify_token)):
+    """
+    Rename a stock/symbol in the user's wallet CSV.
+    """
+    if blob_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob client not configured")
+    
+    try:
+        if not asset_type or not request:
+            raise HTTPException(status_code=400, detail="asset_type, old_name and new_name are required")
+        
+        old_name = request.old_name.strip().upper()
+        new_name = request.new_name.strip().upper()
+        
+        if not new_name or len(new_name) > 10:
+            raise HTTPException(status_code=400, detail="New name must be 1-10 characters")
+        if not re.match(r'^[a-zA-Z0-9]+$', new_name):
+            raise HTTPException(status_code=400, detail="New name must be alphanumeric only")
+        
+        result = csv_handler.rename_wallet_stock(blob_client, "investmentscontainer", asset_type, current_user, old_name, new_name)
+        return {"message": result, "old_name": old_name, "new_name": new_name}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/wallet/stock")
+def delete_wallet_stock(asset_type: str = None, stock_name: str = None, current_user: str = Depends(verify_token)):
+    """
+    Delete a stock/symbol from the user's wallet CSV.
+    """
+    if blob_client is None:
+        raise HTTPException(status_code=500, detail="Azure Blob client not configured")
+    
+    try:
+        if not asset_type or not stock_name:
+            raise HTTPException(status_code=400, detail="asset_type and stock_name are required")
+        
+        stock_name = stock_name.strip().upper()
+        result = csv_handler.delete_wallet_stock(blob_client, "investmentscontainer", asset_type, current_user, stock_name)
+        return {"message": result, "stock_name": stock_name}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

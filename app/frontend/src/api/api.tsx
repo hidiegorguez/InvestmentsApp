@@ -84,3 +84,74 @@ export async function deleteWalletRecord(assetType: string, userId: string, inde
   }
   return response.json();
 }
+
+export async function addWalletStock(assetType: string, stockName: string): Promise<{ message: string; stock_name: string }> {
+  const response = await fetch(
+    `${API_BASE}/wallet/stock?asset_type=${encodeURIComponent(assetType)}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ stock_name: stockName }),
+    }
+  );
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_userId');
+      localStorage.removeItem('auth_assets');
+      window.location.href = '/';
+    }
+    const error = await response.json();
+    throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function renameWalletStock(assetType: string, oldName: string, newName: string): Promise<{ message: string }> {
+  const response = await fetch(
+    `${API_BASE}/wallet/stock?asset_type=${encodeURIComponent(assetType)}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ old_name: oldName, new_name: newName }),
+    }
+  );
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_userId');
+      localStorage.removeItem('auth_assets');
+      window.location.href = '/';
+    }
+    const error = await response.json();
+    throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function deleteWalletStock(assetType: string, stockName: string): Promise<{ message: string }> {
+  const response = await fetch(
+    `${API_BASE}/wallet/stock?asset_type=${encodeURIComponent(assetType)}&stock_name=${encodeURIComponent(stockName)}`,
+    {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    }
+  );
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_userId');
+      localStorage.removeItem('auth_assets');
+      window.location.href = '/';
+    }
+    const error = await response.json();
+    throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
