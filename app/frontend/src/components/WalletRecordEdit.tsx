@@ -70,68 +70,68 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
 
     try {
       await saveWalletRecord(updatedRecord.asset, updatedRecord);
-      setSuccessMessage('Operación realizada con éxito.');
+      setSuccessMessage('Changes saved successfully.');
       
-      // Esperar antes de cerrar y recargar
       setTimeout(() => {
         onSave(updatedRecord);
         window.location.reload();
       }, 1500);
     } catch (e: any) {
-      setError(`Error al guardar: ${e.message}`);
+      setError(`Failed to save: ${e.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center">
-      <div className="w-full bg-white p-4 sm:p-6 rounded-md shadow-xl max-h-[80vh] overflow-y-auto">
-        <h2 className="text-xl sm:text-2xl font-semibold mb-4">Edit operation</h2>
+    <div>
+      <div className="max-h-[70vh] overflow-y-auto">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Edit Record</h2>
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Date:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
           <input
             type="date"
             value={editDate}
             onChange={handleDateChange}
-            className="w-full p-3 sm:p-2 border rounded-md text-base"
+            className="w-full p-3 sm:p-2.5 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
           />
         </div>
         <div>
-          <h3 className="text-base sm:text-lg font-semibold mb-2">Assets</h3>
-          <ul>
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Assets</h3>
+          <div className="space-y-3">
             {stock.map((item) => (
-              <li key={item.symbol} className="mb-4 p-3 bg-gray-50 rounded-md">
-                <span className="font-bold block mb-2 text-orange-600">{item.symbol}</span>
+              <div key={item.symbol} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                <span className="font-semibold block mb-3 text-gray-900">{item.symbol}</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Holding:</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Holdings</label>
                     <input
                       type="text"
                       inputMode="decimal"
                       value={editStock[item.symbol]?.total_holding ?? ''}
                       onChange={(e) => handleStockChange(item.symbol, 'total_holding', e.target.value)}
-                      className="w-full p-3 sm:p-2 border rounded-md text-base"
+                      className="w-full p-3 sm:p-2.5 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Invested (EUR):</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Invested (€)</label>
                     <input
                       type="text"
                       inputMode="decimal"
                       value={editStock[item.symbol]?.invested ?? ''}
                       onChange={(e) => handleStockChange(item.symbol, 'invested', e.target.value)}
-                      className="w-full p-3 sm:p-2 border rounded-md text-base"
+                      className="w-full p-3 sm:p-2.5 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     />
                   </div>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
-        <div className="flex flex-col justify-end mt-4">
+      </div>
+      <div className="flex flex-col justify-end mt-5 pt-4 border-t border-gray-100">
           {successMessage ? (
-            <div className="text-center text-green-500 py-2">
+            <div className="text-center text-emerald-600 py-2">
               {successMessage}
             </div>
           ) : (
@@ -139,27 +139,26 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
               <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
                 <button
                   onClick={onCancel}
-                  className="px-4 py-3 sm:py-2 bg-gray-300 hover:bg-gray-400 active:bg-gray-500 rounded-md order-2 sm:order-1"
+                  className="px-4 py-3 sm:py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg order-2 sm:order-1 transition-colors"
                   disabled={loading}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className={`px-4 py-3 sm:py-2 rounded-md text-white order-1 sm:order-2 ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700'}`}
+                  className={`px-4 py-3 sm:py-2.5 rounded-lg text-white order-1 sm:order-2 font-medium transition-colors ${loading ? 'bg-gray-400' : 'bg-orange-500 hover:bg-orange-600'}`}
                   disabled={loading}
                 >
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
               {error && (
-                <div className="mt-4 text-center text-red-500 text-sm">
+                <div className="mt-4 text-center text-red-600 text-sm">
                   {error}
                 </div>
               )}
             </>
           )}
-        </div>
       </div>
     </div>
   );

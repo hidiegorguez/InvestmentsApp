@@ -23,7 +23,7 @@ const Wallet: React.FC = () => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('en-US', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -33,7 +33,7 @@ const Wallet: React.FC = () => {
   useEffect(() => {
     const fetchWallet = async () => {
       if (!userId || !asset) {
-        setError('Faltan parámetros necesarios.');
+        setError('Missing required parameters.');
         return;
       }
 
@@ -41,7 +41,7 @@ const Wallet: React.FC = () => {
         const data = await getWallet(userId, asset);
         setWalletData(data);
       } catch (e: any) {
-        setError(`Error al obtener la billetera: ${e.message}`);
+        setError(`Failed to load wallet: ${e.message}`);
       }
     };
 
@@ -50,7 +50,7 @@ const Wallet: React.FC = () => {
 
   const fetchAssets = async () => {
     if (!userId) {
-      setError('Faltan parámetros necesarios para obtener los assets.');
+      setError('Missing required parameters.');
       return;
     }
 
@@ -59,7 +59,7 @@ const Wallet: React.FC = () => {
       setAssets(data);
       setShowAssetPanel(true);
     } catch (e: any) {
-      setError(`Error al obtener los assets: ${e.message}`);
+      setError(`Failed to load assets: ${e.message}`);
     }
   };
 
@@ -99,7 +99,6 @@ const Wallet: React.FC = () => {
       await deleteWalletRecord(asset, userId, deleteIndex);
       setDeleteSuccess(true);
       
-      // Esperar antes de cerrar y recargar
       setTimeout(() => {
         setShowDeleteModal(false);
         setDeleteIndex(null);
@@ -107,7 +106,7 @@ const Wallet: React.FC = () => {
         window.location.reload();
       }, 1500);
     } catch (e: any) {
-      setError(`Error al eliminar: ${e.message}`);
+      setError(`Failed to delete: ${e.message}`);
       setShowDeleteModal(false);
     } finally {
       setDeleteLoading(false);
@@ -157,7 +156,7 @@ const Wallet: React.FC = () => {
   if (!walletData) {
     return (
       <div className="flex flex-col items-center justify-center p-2 sm:p-6">
-        <div className="w-full bg-white p-4 sm:p-6 rounded-md shadow-xl">
+        <div className="w-full max-w-5xl mx-auto bg-white p-4 sm:p-6 rounded-md shadow-xl">
           {/* Header skeleton */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
             <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
@@ -169,19 +168,19 @@ const Wallet: React.FC = () => {
           {/* Table skeleton */}
           <div className="space-y-3 overflow-x-auto">
             {/* Header row */}
-            <div className="flex space-x-4 min-w-150">
-              <div className="h-10 w-24 bg-gray-300 rounded animate-pulse"></div>
+            <div className="flex space-x-4">
+              <div className="h-10 w-28 bg-gray-300 rounded animate-pulse"></div>
               <div className="h-10 flex-1 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-10 flex-1 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-10 w-20 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-28 bg-gray-200 rounded animate-pulse"></div>
             </div>
             {/* Data rows */}
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex space-x-4 min-w-150">
-                <div className="h-12 w-24 bg-gray-100 rounded animate-pulse"></div>
+              <div key={i} className="flex space-x-4">
+                <div className="h-12 w-28 bg-gray-100 rounded animate-pulse"></div>
                 <div className="h-12 flex-1 bg-gray-100 rounded animate-pulse"></div>
                 <div className="h-12 flex-1 bg-gray-100 rounded animate-pulse"></div>
-                <div className="h-12 w-20 bg-gray-100 rounded animate-pulse"></div>
+                <div className="h-12 w-28 bg-gray-100 rounded animate-pulse"></div>
               </div>
             ))}
           </div>
@@ -192,15 +191,20 @@ const Wallet: React.FC = () => {
 
   const assetSymbols = walletData[0]?.assets.map((asset: any) => asset.symbol) || [];
 
+  // Capitalizar primera letra
+  const formatAssetName = (name: string) => {
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  };
+
   return (
     <div className="flex flex-col items-center justify-center">
       {showAssetPanel && userId && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-10 p-4\">
-          <div className="bg-gray-200 p-4 rounded-md shadow-md w-full max-w-sm sm:max-w-md\">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10 p-4">
+          <div className="bg-white p-5 rounded-lg shadow-lg w-full max-w-sm sm:max-w-md">
             <AssetSelectionPanel userId={userId} assets={assets} onClose={() => setShowAssetPanel(false)} />
             <button
               onClick={() => setShowAssetPanel(false)}
-              className="mt-2 w-full bg-red-700 text-white px-4 py-3 sm:py-2 rounded hover:bg-red-800 active:bg-red-900\"
+              className="mt-3 w-full border border-gray-300 text-gray-700 px-4 py-3 sm:py-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors"
             >
               Close
             </button>
@@ -208,8 +212,8 @@ const Wallet: React.FC = () => {
         </div>
       )}
       {showEditPanel && userId && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-10 p-4 overflow-y-auto\">
-          <div className="bg-gray-200 p-4 rounded-md shadow-md w-full max-w-sm sm:max-w-md my-4\">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10 p-4 overflow-y-auto">
+          <div className="bg-white p-5 rounded-lg shadow-lg w-full max-w-sm sm:max-w-md my-4">
             {record && (
               <WalletRecordEdit 
                 {...record} 
@@ -221,28 +225,28 @@ const Wallet: React.FC = () => {
         </div>
       )}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-10 p-4">
-          <div className="bg-white p-4 sm:p-6 rounded-md shadow-md w-full max-w-sm">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4">Confirmar eliminación</h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10 p-4">
+          <div className="bg-white p-5 sm:p-6 rounded-lg shadow-lg w-full max-w-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Confirm deletion</h2>
             {deleteSuccess ? (
-              <p className="mb-6 text-green-500 text-center">Registro eliminado con éxito.</p>
+              <p className="mb-6 text-emerald-600 text-center">Record deleted successfully.</p>
             ) : (
               <>
-                <p className="mb-6 text-sm sm:text-base">¿Estás seguro de que quieres eliminar este registro?</p>
+                <p className="mb-6 text-sm sm:text-base text-gray-600">Are you sure you want to delete this record?</p>
                 <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
                   <button
                     onClick={handleDeleteCancel}
-                    className="px-4 py-3 sm:py-2 bg-gray-300 hover:bg-gray-400 active:bg-gray-500 rounded-md order-2 sm:order-1"
+                    className="px-4 py-3 sm:py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg order-2 sm:order-1 transition-colors"
                     disabled={deleteLoading}
                   >
-                    Cancelar
+                    Cancel
                   </button>
                   <button
                     onClick={handleDeleteConfirm}
-                    className={`px-4 py-3 sm:py-2 rounded-md text-white order-1 sm:order-2 ${deleteLoading ? 'bg-gray-500' : 'bg-red-500 hover:bg-red-600 active:bg-red-700'}`}
+                    className={`px-4 py-3 sm:py-2 rounded-lg text-white order-1 sm:order-2 transition-colors ${deleteLoading ? 'bg-gray-400' : 'bg-gray-800 hover:bg-gray-900'}`}
                     disabled={deleteLoading}
                   >
-                    {deleteLoading ? 'Eliminando...' : 'Eliminar'}
+                    {deleteLoading ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </>
@@ -258,84 +262,92 @@ const Wallet: React.FC = () => {
         onRenameStock={handleRenameStock}
         onDeleteStock={handleDeleteStock}
       />
-      <div className="w-full bg-white p-3 sm:p-6 rounded-md shadow-xl relative">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
-          <h2 className="text-xl sm:text-2xl font-semibold\">{asset?.toUpperCase()} WALLET</h2>
+      <div className="w-full max-w-5xl mx-auto bg-white p-4 sm:p-8 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">{formatAssetName(asset || '')} Wallet</h2>
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={fetchAssets}
-              className="bg-orange-600 text-white px-4 py-2 sm:py-2 rounded text-sm font-medium hover:bg-orange-700 active:bg-orange-800"
+              className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 active:bg-orange-700 transition-colors"
             >
-              Change Asset
+              Switch Asset
             </button>
             <button
               onClick={() => setShowStockManager(true)}
-              className="bg-blue-600 text-white px-4 py-2 sm:py-2 rounded text-sm font-medium hover:bg-blue-700 active:bg-blue-800"
+              className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 active:bg-gray-100 transition-colors"
             >
-              Edit Stocks
+              Manage Stocks
             </button>
             <button
               onClick={handleAddNewRecord}
-              className="bg-green-600 text-white px-4 py-2 sm:py-2 rounded text-sm font-medium hover:bg-green-700 active:bg-green-800"
+              className="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-900 active:bg-black transition-colors"
             >
-              Add New Record
+              New Record
             </button>
           </div>
         </div>
         
         {/* Tabla responsive con scroll horizontal en móviles */}
-        <div className="overflow-x-auto -mx-3 sm:mx-0\">
-          <div className="min-w-150 px-3 sm:px-0\">
-            <table className="table-auto w-full border-collapse border border-gray-300 text-xs sm:text-sm\">
-              <thead>
-                <tr>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-100\">Date</th>
-                  {assetSymbols.map((symbol: string) => (
-                    <React.Fragment key={symbol}>
-                      <th className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-200\" colSpan={2}>{symbol}</th>
-                    </React.Fragment>
-                  ))}
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-100\">Actions</th>
-                </tr>
-                <tr>
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-100\"></th>
-                  {assetSymbols.map((symbol: string) => (
-                    <React.Fragment key={symbol}>
-                      <th className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-200 text-xs\">Invested</th>
-                      <th className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-200 text-xs\">Holding</th>
-                    </React.Fragment>
-                  ))}
-                  <th className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-100\"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {walletData.map((entry: any, index: number) => (
-                  <tr key={index}>
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-50 whitespace-nowrap\">{formatDate(entry.date)}</td>
-                    {assetSymbols.map((symbol: string) => {
-                      const asset = entry.assets.find((a: any) => a.symbol === symbol);
-                      return (
-                        <React.Fragment key={symbol}>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-100 text-right\">{asset?.invested_EUR || '-'}</td>
-                          <td className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-100 text-right\">{asset?.total_holding || '-'}</td>
-                        </React.Fragment>
-                      );
-                    })}
-                    <td className="border border-gray-300 px-2 sm:px-4 py-2 bg-gray-50 text-center whitespace-nowrap\">
-                      <button className="text-green-500 hover:text-green-700 active:text-green-800 mx-1 sm:mx-2 p-1\"
-                              onClick={() => fetchEditPanel(userId!, index, asset!, entry.date, entry.assets)}>
-                        <i className="fi fi-sr-customize text-lg sm:text-base\"></i>
-                      </button>
-                      <button className="text-red-500 hover:text-red-700 active:text-red-800 mx-1 sm:mx-2 p-1\"
-                              onClick={() => handleDeleteClick(index)}>
-                        <i className="fi fi-sr-trash text-lg sm:text-base\"></i>
-                      </button>
-                    </td>
-                  </tr>
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <table className="w-full text-sm sm:text-base min-w-[500px]">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-3 px-3 font-semibold text-gray-600 bg-gray-50/50 w-28">Date</th>
+                {assetSymbols.map((symbol: string) => (
+                  <th key={symbol} className="text-center py-3 px-2 border-x border-gray-300 font-semibold text-gray-900 bg-gray-50/50" colSpan={2}>
+                    {symbol}
+                  </th>
                 ))}
-              </tbody>
-            </table>
-          </div>
+                <th className="text-center py-3 px-3 font-semibold text-gray-600 bg-gray-50/50 w-28">Actions</th>
+              </tr>
+              <tr className="border-b border-gray-100">
+                <th className="py-2 px-3"></th>
+                {assetSymbols.map((symbol: string) => (
+                  <React.Fragment key={symbol}>
+                    <th className="py-2 px-2 text-xs font-medium text-gray-500 uppercase tracking-wide">Invested</th>
+                    <th className="py-2 px-2 text-xs font-medium text-gray-500 uppercase tracking-wide">Holdings</th>
+                  </React.Fragment>
+                ))}
+                <th className="py-2 px-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {walletData.map((entry: any, index: number) => (
+                <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="py-1 px-3 text-gray-600 whitespace-nowrap text-sm">{formatDate(entry.date)}</td>
+                  {assetSymbols.map((symbol: string) => {
+                    const assetData = entry.assets.find((a: any) => a.symbol === symbol);
+                    return (
+                      <React.Fragment key={symbol}>
+                        <td className="py-3 px-2 text-center border-l border-gray-200 text-gray-900 font-medium tabular-nums">
+                          {assetData?.invested_EUR != null ? `€${assetData.invested_EUR.toLocaleString()}` : '—'}
+                        </td>
+                        <td className="py-3 px-2 text-center border-r border-gray-200 text-gray-700 tabular-nums">
+                          {assetData?.total_holding != null ? assetData.total_holding.toLocaleString() : '—'}
+                        </td>
+                      </React.Fragment>
+                    );
+                  })}
+                  <td className="py-1 px-3 text-center whitespace-nowrap">
+                    <button 
+                      className="text-gray-400 hover:text-orange-500 p-1 rounded transition-colors"
+                      onClick={() => fetchEditPanel(userId!, index, asset!, entry.date, entry.assets)}
+                      title="Edit record"
+                    >
+                      <i className="fi fi-sr-customize text-lg"></i>
+                    </button>
+                    <button 
+                      className="text-gray-400 hover:text-gray-700 p-1 rounded transition-colors ml-1"
+                      onClick={() => handleDeleteClick(index)}
+                      title="Delete record"
+                    >
+                      <i className="fi fi-sr-trash text-lg"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

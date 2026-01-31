@@ -28,9 +28,9 @@ export default function StockManagerModal({
 
   const validateName = (name: string): string | null => {
     const trimmed = name.trim().toUpperCase();
-    if (!trimmed) return 'El nombre es requerido';
-    if (trimmed.length > 10) return 'Máximo 10 caracteres';
-    if (!/^[a-zA-Z0-9]+$/.test(trimmed)) return 'Solo letras y números';
+    if (!trimmed) return 'Name is required';
+    if (trimmed.length > 10) return 'Max 10 characters';
+    if (!/^[a-zA-Z0-9]+$/.test(trimmed)) return 'Letters and numbers only';
     return null;
   };
 
@@ -43,7 +43,7 @@ export default function StockManagerModal({
     }
 
     if (stocks.includes(trimmed)) {
-      setError('Este stock ya existe');
+      setError('This stock already exists');
       return;
     }
 
@@ -54,7 +54,7 @@ export default function StockManagerModal({
       setNewStockName('');
       window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al añadir');
+      setError(err instanceof Error ? err.message : 'Failed to add');
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export default function StockManagerModal({
     }
 
     if (stocks.includes(trimmed)) {
-      setError('Este nombre ya existe');
+      setError('This name already exists');
       return;
     }
 
@@ -98,7 +98,7 @@ export default function StockManagerModal({
       await onRenameStock(editingStock, trimmed);
       window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al renombrar');
+      setError(err instanceof Error ? err.message : 'Failed to rename');
     } finally {
       setLoading(false);
     }
@@ -117,7 +117,7 @@ export default function StockManagerModal({
       await onDeleteStock(deletingStock);
       window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar');
+      setError(err instanceof Error ? err.message : 'Failed to delete');
     } finally {
       setLoading(false);
       setDeletingStock(null);
@@ -138,37 +138,37 @@ export default function StockManagerModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-10 p-4">
-      <div className="bg-white p-4 sm:p-6 rounded-md shadow-md w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <h2 className="text-lg sm:text-xl font-semibold mb-4">Gestionar Stocks</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10 p-4">
+      <div className="bg-white p-5 sm:p-6 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Manage Stocks</h2>
 
         {/* Error message */}
         {error && (
-          <div className="mb-4 p-2 bg-red-100 border border-red-300 rounded text-red-700 text-sm">
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
             {error}
           </div>
         )}
 
         {/* Confirmation dialog for delete */}
         {deletingStock && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm mb-3">
-              ¿Eliminar <strong>{deletingStock}</strong>? Se perderán todos los datos de este stock.
+          <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <p className="text-sm text-gray-700 mb-3">
+              Delete <strong className="text-gray-900">{deletingStock}</strong>? All data for this stock will be lost.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={handleCancelDelete}
                 disabled={loading}
-                className="flex-1 px-3 py-2 bg-gray-300 hover:bg-gray-400 rounded text-sm"
+                className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg text-sm transition-colors"
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
                 disabled={loading}
-                className="flex-1 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm"
+                className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg text-sm transition-colors"
               >
-                {loading ? 'Eliminando...' : 'Eliminar'}
+                {loading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
@@ -176,15 +176,15 @@ export default function StockManagerModal({
 
         {/* Stock list */}
         <div className="mb-4">
-          <label className="block text-sm text-gray-600 mb-2">Stocks actuales</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Current stocks</label>
           {stocks.length === 0 ? (
-            <p className="text-gray-400 text-sm italic">No hay stocks</p>
+            <p className="text-gray-400 text-sm italic py-3">No stocks yet</p>
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {stocks.map((stock) => (
                 <div
                   key={stock}
-                  className="flex items-center gap-2 p-2 bg-gray-50 rounded border"
+                  className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-100"
                 >
                   {editingStock === stock ? (
                     <>
@@ -192,7 +192,7 @@ export default function StockManagerModal({
                         type="text"
                         value={editedName}
                         onChange={(e) => setEditedName(e.target.value.toUpperCase().slice(0, 10))}
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                         maxLength={10}
                         disabled={loading}
                         autoFocus
@@ -200,36 +200,36 @@ export default function StockManagerModal({
                       <button
                         onClick={handleSaveEdit}
                         disabled={loading}
-                        className="p-1 text-green-600 hover:text-green-800"
-                        title="Guardar"
+                        className="p-1.5 text-emerald-600 hover:text-emerald-700 transition-colors"
+                        title="Save"
                       >
                         <i className="fi fi-sr-check text-lg"></i>
                       </button>
                       <button
                         onClick={handleCancelEdit}
                         disabled={loading}
-                        className="p-1 text-gray-500 hover:text-gray-700"
-                        title="Cancelar"
+                        className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                        title="Cancel"
                       >
                         <i className="fi fi-sr-cross-small text-lg"></i>
                       </button>
                     </>
                   ) : (
                     <>
-                      <span className="flex-1 font-medium text-sm">{stock}</span>
+                      <span className="flex-1 font-medium text-gray-900">{stock}</span>
                       <button
                         onClick={() => handleStartEdit(stock)}
                         disabled={loading || deletingStock !== null}
-                        className="p-1 text-green-500 hover:text-green-700 disabled:opacity-50"
-                        title="Editar nombre"
+                        className="p-1.5 text-gray-400 hover:text-orange-500 disabled:opacity-50 transition-colors"
+                        title="Rename"
                       >
                         <i className="fi fi-sr-customize text-base"></i>
                       </button>
                       <button
                         onClick={() => handleDeleteClick(stock)}
                         disabled={loading || deletingStock !== null}
-                        className="p-1 text-red-500 hover:text-red-700 disabled:opacity-50"
-                        title="Eliminar"
+                        className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-50 transition-colors"
+                        title="Delete"
                       >
                         <i className="fi fi-sr-trash text-base"></i>
                       </button>
@@ -242,28 +242,28 @@ export default function StockManagerModal({
         </div>
 
         {/* Add new stock */}
-        <div className="mb-4 p-3 bg-gray-50 rounded border">
-          <label className="block text-sm text-gray-600 mb-2">Añadir nuevo stock</label>
+        <div className="mb-5 p-4 bg-gray-50 rounded-lg border border-gray-100">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Add new stock</label>
           <div className="flex gap-2">
             <input
               type="text"
               value={newStockName}
               onChange={(e) => setNewStockName(e.target.value.toUpperCase().slice(0, 10))}
-              placeholder="Ej: BTC, ETH, AAPL"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              placeholder="e.g. BTC, AAPL, MSFT"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
               maxLength={10}
               disabled={loading || editingStock !== null || deletingStock !== null}
             />
             <button
               onClick={handleAddStock}
               disabled={loading || !newStockName.trim() || editingStock !== null || deletingStock !== null}
-              className={`px-4 py-2 rounded-md text-white text-sm ${
+              className={`px-4 py-2 rounded-lg text-white text-sm font-medium transition-colors ${
                 loading || !newStockName.trim() || editingStock !== null || deletingStock !== null
-                  ? 'bg-gray-400'
-                  : 'bg-green-600 hover:bg-green-700'
+                  ? 'bg-gray-300'
+                  : 'bg-orange-500 hover:bg-orange-600'
               }`}
             >
-              {loading ? '...' : 'Añadir'}
+              {loading ? '...' : 'Add'}
             </button>
           </div>
           <div className="text-right mt-1">
@@ -275,9 +275,9 @@ export default function StockManagerModal({
         <button
           onClick={handleClose}
           disabled={loading}
-          className="w-full px-4 py-3 sm:py-2 bg-gray-300 hover:bg-gray-400 active:bg-gray-500 rounded-md"
+          className="w-full px-4 py-3 sm:py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors"
         >
-          Cerrar
+          Close
         </button>
       </div>
     </div>

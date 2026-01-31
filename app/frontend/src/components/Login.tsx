@@ -19,7 +19,7 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     if (!userId || !password) {
-      setError('Por favor, introduce usuario y contraseña.');
+      setError('Please enter username and password.');
       setIsLoading(false);
       return;
     }
@@ -31,11 +31,11 @@ const Login: React.FC = () => {
       setSuccesfullLogin(true);
     } catch (e: any) {
       if (e.message.includes('401')) {
-        setError('Usuario o contraseña incorrectos.');
+        setError('Invalid username or password.');
       } else if (e.message.includes('404')) {
-        setError('Usuario no existente.');
+        setError('User not found.');
       } else {
-        setError('Error de conexión. Inténtalo de nuevo.');
+        setError('Connection error. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -57,7 +57,7 @@ const Login: React.FC = () => {
 
           <input
             type="text"
-            placeholder="Usuario"
+            placeholder="Username"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -67,7 +67,7 @@ const Login: React.FC = () => {
 
           <input
             type="password"
-            placeholder="Contraseña"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -86,7 +86,7 @@ const Login: React.FC = () => {
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
               </svg>
             ) : (
-              'Entrar'
+              'Sign In'
             )}
           </button>
 
