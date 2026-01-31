@@ -162,9 +162,9 @@ const Wallet: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
             <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
             <div className="flex flex-col sm:flex-row gap-2">
-              <div className="h-10 w-full sm:w-32 bg-orange-600 rounded animate-pulse"></div>
-              <div className="h-10 w-full sm:w-36 bg-gray-200 rounded animate-pulse"></div>
               <div className="h-10 w-full sm:w-32 bg-gray-800 rounded animate-pulse"></div>
+              <div className="h-10 w-full sm:w-36 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-full sm:w-32 bg-orange-600 rounded animate-pulse"></div>
             </div>
           </div>
           {/* Table skeleton */}
@@ -201,7 +201,7 @@ const Wallet: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center">
       <Modal isOpen={showAssetPanel && !!userId} onClose={() => setShowAssetPanel(false)} size="sm">
-        <AssetSelectionPanel userId={userId!} assets={assets} onClose={() => setShowAssetPanel(false)} />
+        <AssetSelectionPanel userId={userId!} assets={assets} onClose={() => setShowAssetPanel(false)} currentAsset={asset} />
         <Button
           variant="outline"
           size="lg"
@@ -247,7 +247,7 @@ const Wallet: React.FC = () => {
           <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">{formatAssetName(asset || '')} Wallet</h2>
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
-              variant="primary"
+              variant="secondary"
               size="md"
               onClick={fetchAssets}
             >
@@ -261,7 +261,7 @@ const Wallet: React.FC = () => {
               Manage Stocks
             </Button>
             <Button
-              variant="secondary"
+              variant="primary"
               size="md"
               onClick={handleAddNewRecord}
             >
