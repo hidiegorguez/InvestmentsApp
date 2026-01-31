@@ -21,6 +21,8 @@ const Wallet: React.FC = () => {
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [assets, setAssets] = useState<string[]>([]);
   const [showStockManager, setShowStockManager] = useState(false);
+  const [showDeltaMode, setShowDeltaMode] = useState(false);
+  const [showPriceMode, setShowPriceMode] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -288,10 +290,38 @@ const Wallet: React.FC = () => {
                 {assetSymbols.map((symbol: string) => (
                   <React.Fragment key={symbol}>
                     <th className="py-2 px-2 text-xs font-medium text-gray-500 uppercase tracking-wide">Invested</th>
-                    <th className="py-2 px-2 text-xs font-medium text-gray-500 uppercase tracking-wide">Holdings</th>
+                    <th className="py-2 px-2 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <div className="flex flex-col items-center justify-center">
+                        <span>{showDeltaMode ? 'Δ Holdings' : 'Holdings'}</span>
+                        {showPriceMode && <span className="text-blue-600">Price</span>}
+                      </div>
+                    </th>
                   </React.Fragment>
                 ))}
-                <th className="py-2 px-3"></th>
+                <th className="py-2 px-3 space-x-1">
+                  <button
+                    onClick={() => setShowDeltaMode(!showDeltaMode)}
+                    className={`text-xs px-2 py-1 rounded transition-colors ${
+                      showDeltaMode 
+                        ? 'bg-orange-500 text-white' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    title={showDeltaMode ? 'Show total holdings' : 'Show delta (change from previous)'}
+                  >
+                    Δ
+                  </button>
+                  <button
+                    onClick={() => setShowPriceMode(!showPriceMode)}
+                    className={`text-xs px-2 py-1 rounded transition-colors ${
+                      showPriceMode 
+                        ? 'bg-orange-500 text-white' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    title={showPriceMode ? 'Hide price per unit' : 'Show price per unit (Invested / Δ Holdings)'}
+                  >
+                    €/u
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -300,13 +330,52 @@ const Wallet: React.FC = () => {
                   <td className="py-1 px-3 text-gray-600 whitespace-nowrap text-sm">{formatDate(entry.date)}</td>
                   {assetSymbols.map((symbol: string) => {
                     const assetData = entry.assets.find((a: any) => a.symbol === symbol);
+                    
+                    // Calculate delta holding (current - previous)
+                    let deltaHolding: number | null = null;
+                    const prevEntry = walletData[index - 1]; // Previous entry (older date)
+                    const prevAssetData = prevEntry?.assets.find((a: any) => a.symbol === symbol);
+                    const prevHolding = prevAssetData?.total_holding ?? 0;
+                    
+                    if (assetData?.total_holding != null) {
+                      deltaHolding = assetData.total_holding - prevHolding;
+                    }
+                    
+                    // Calculate price per unit (use absolute values for both buys and sells)
+                    let pricePerUnit: number | null = null;
+                    if (showPriceMode && deltaHolding != null && deltaHolding !== 0 && assetData?.invested_EUR != null) {
+                      pricePerUnit = Math.abs(assetData.invested_EUR) / Math.abs(deltaHolding);
+                    }
+                    
                     return (
                       <React.Fragment key={symbol}>
                         <td className="py-3 px-2 text-center border-l border-gray-200 text-gray-900 font-medium tabular-nums">
-                          {assetData?.invested_EUR != null ? `€${assetData.invested_EUR.toLocaleString()}` : '—'}
+                          {assetData?.invested_EUR != null ? `${assetData.invested_EUR.toLocaleString('de-DE')}€` : '—'}
                         </td>
-                        <td className="py-3 px-2 text-center border-r border-gray-200 text-gray-700 tabular-nums">
-                          {assetData?.total_holding != null ? assetData.total_holding.toLocaleString() : '—'}
+                        <td className={`py-3 px-2 text-center border-r border-gray-200 tabular-nums ${
+                          showDeltaMode 
+                            ? deltaHolding != null && deltaHolding > 0 
+                              ? 'text-green-600 font-medium' 
+                              : deltaHolding != null && deltaHolding < 0 
+                                ? 'text-red-600 font-medium' 
+                                : 'text-gray-700'
+                            : 'text-gray-700'
+                        }`}>
+                          <div>
+                            {showDeltaMode 
+                              ? deltaHolding != null 
+                                ? `${deltaHolding >= 0 ? '+' : ''}${deltaHolding.toLocaleString()}` 
+                                : '—'
+                              : assetData?.total_holding != null 
+                                ? assetData.total_holding.toLocaleString() 
+                                : '—'
+                            }
+                          </div>
+                          {showPriceMode && pricePerUnit != null && (
+                            <div className="text-xs text-blue-600 font-medium">
+                              {pricePerUnit.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
+                            </div>
+                          )}
                         </td>
                       </React.Fragment>
                     );
