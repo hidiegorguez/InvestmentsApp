@@ -15,8 +15,8 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
       const initial: Record<string, { total_holding: string; invested: string }> = {};
       stock.forEach((item) => {
         initial[item.symbol] = {
-          total_holding: String(item.total_holding),
-          invested: String(item.invested),
+          total_holding: String(item.total_holding ?? 0),
+          invested: String(item.invested ?? 0),
         };
       });
       return initial;
@@ -31,8 +31,8 @@ const WalletRecordEdit: React.FC<WalletRecordEditProps> = ({ userId, asset, inde
     const initial: Record<string, { total_holding: string; invested: string }> = {};
     stock.forEach((item) => {
       initial[item.symbol] = {
-        total_holding: String(item.total_holding),
-        invested: String(item.invested),
+        total_holding: String(item.total_holding ?? 0),
+        invested: String(item.invested ?? 0),
       };
     });
     setEditStock(initial);

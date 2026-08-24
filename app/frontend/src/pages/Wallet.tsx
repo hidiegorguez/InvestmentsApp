@@ -255,13 +255,7 @@ const Wallet: React.FC = () => {
             >
               Switch Asset
             </Button>
-            <Button
-              variant="outline"
-              size="md"
-              onClick={() => setShowStockManager(true)}
-            >
-              Manage Stocks
-            </Button>
+            {/* Manage Stocks hidden until add/rename/delete symbol is migrated to the new Supabase schema */}
             <Button
               variant="primary"
               size="md"
@@ -350,7 +344,7 @@ const Wallet: React.FC = () => {
                     return (
                       <React.Fragment key={symbol}>
                         <td className="py-3 px-2 text-center border-l border-gray-200 text-gray-900 font-medium tabular-nums">
-                          {assetData?.invested_EUR != null ? `${assetData.invested_EUR.toLocaleString('de-DE')}€` : '—'}
+                          {(assetData?.invested_EUR ?? 0).toLocaleString('de-DE')}€
                         </td>
                         <td className={`py-3 px-2 text-center border-r border-gray-200 tabular-nums ${
                           showDeltaMode 
@@ -363,12 +357,8 @@ const Wallet: React.FC = () => {
                         }`}>
                           <div>
                             {showDeltaMode 
-                              ? deltaHolding != null 
-                                ? `${deltaHolding >= 0 ? '+' : ''}${deltaHolding.toLocaleString()}` 
-                                : '—'
-                              : assetData?.total_holding != null 
-                                ? assetData.total_holding.toLocaleString() 
-                                : '—'
+                              ? `${(deltaHolding ?? 0) >= 0 ? '+' : ''}${(deltaHolding ?? 0).toLocaleString()}`
+                              : (assetData?.total_holding ?? 0).toLocaleString()
                             }
                           </div>
                           {showPriceMode && pricePerUnit != null && (
